@@ -13,7 +13,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
             <SidebarTrigger className="hidden md:flex" />
-            <h1 className="text-base md:text-xl font-semibold truncate">SchoolCare</h1>
+            <h1 className="text-base md:text-xl font-semibold truncate">Holy Cross School</h1>
           </header>
           <div className="p-3 md:p-6">
             {children}

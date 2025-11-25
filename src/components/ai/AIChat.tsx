@@ -132,7 +132,7 @@ export function AIChat() {
       <div className="flex items-center justify-between gap-2 p-4 border-b">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">SchoolCare AI Assistant</h2>
+          <h2 className="text-lg font-semibold">Holy Cross School AI Assistant</h2>
         </div>
         <Button
           variant="outline"
@@ -169,7 +169,7 @@ export function AIChat() {
         {messages.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
             <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary/20" />
-            <p className="text-lg font-medium mb-2">Welcome to SchoolCare AI</p>
+            <p className="text-lg font-medium mb-2">Welcome to Holy Cross School AI</p>
             <p className="text-sm">Ask me anything about students, classes, tests, or school management!</p>
           </div>
         )}

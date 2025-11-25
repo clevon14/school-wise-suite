@@ -77,7 +77,7 @@ export function ReportCard({ examId, studentId }: { examId: string; studentId: s
 
       <Card className="print:shadow-none">
         <CardHeader className="text-center border-b print:pb-6">
-          <CardTitle className="text-3xl">SchoolCare</CardTitle>
+          <CardTitle className="text-3xl">Holy Cross School</CardTitle>
           <p className="text-lg font-semibold mt-2">{exam.name}</p>
           <p className="text-sm text-muted-foreground">Academic Year: {exam.academic_year}</p>
         </CardHeader>

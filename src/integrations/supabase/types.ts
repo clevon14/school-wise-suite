@@ -73,8 +73,10 @@ export type Database = {
           details: Json | null
           id: string
           ip_address: string | null
+          is_suspicious: boolean | null
           resource_id: string | null
           resource_type: string
+          security_flags: string[] | null
           user_id: string
         }
         Insert: {
@@ -83,8 +85,10 @@ export type Database = {
           details?: Json | null
           id?: string
           ip_address?: string | null
+          is_suspicious?: boolean | null
           resource_id?: string | null
           resource_type: string
+          security_flags?: string[] | null
           user_id: string
         }
         Update: {
@@ -93,8 +97,10 @@ export type Database = {
           details?: Json | null
           id?: string
           ip_address?: string | null
+          is_suspicious?: boolean | null
           resource_id?: string | null
           resource_type?: string
+          security_flags?: string[] | null
           user_id?: string
         }
         Relationships: []
@@ -1307,6 +1313,63 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          request_count: number | null
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
+      security_compliance: {
+        Row: {
+          check_name: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          is_compliant: boolean | null
+          last_checked: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          check_name: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_compliant?: boolean | null
+          last_checked?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          check_name?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_compliant?: boolean | null
+          last_checked?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       student_transport: {
         Row: {
           created_at: string | null
@@ -2060,6 +2123,15 @@ export type Database = {
         Args: { example_text: string }
         Returns: string
       }
+      check_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_max_requests?: number
+          p_user_id: string
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       get_class_facts: {
         Args: {
           p_class_id: string
@@ -2082,6 +2154,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      mask_pii: {
+        Args: { p_mask_full?: boolean; p_text: string; p_user_role?: string }
+        Returns: string
       }
       match_documents: {
         Args: {

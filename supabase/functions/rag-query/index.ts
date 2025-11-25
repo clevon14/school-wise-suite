@@ -46,6 +46,21 @@ Deno.serve(async (req) => {
 
     const userRole = userRoles?.role || 'parent';
 
+    // Check rate limit (60 requests per minute)
+    const { data: rateLimitOk } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_endpoint: 'rag-query',
+      p_max_requests: 60,
+      p_window_minutes: 1,
+    });
+
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { 
       query, 
       scope = 'school',
@@ -281,12 +296,25 @@ Deno.serve(async (req) => {
       throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
+    // Check for suspicious patterns
+    const isSuspicious = 
+      fieldsReturned.length > 5 || 
+      filteredDocs.length > 8 ||
+      (userRole === 'parent' && scope === 'class');
+
+    const securityFlags: string[] = [];
+    if (fieldsReturned.length > 5) securityFlags.push('high_field_count');
+    if (filteredDocs.length > 8) securityFlags.push('high_doc_retrieval');
+    if (userRole === 'parent' && scope === 'class') securityFlags.push('unauthorized_scope_attempt');
+
     // Log the query with audit trail
     await supabaseClient.from('audit_logs').insert({
       user_id: user.id,
       action: 'ai_query',
       resource_type: 'rag',
       resource_id: target_id,
+      is_suspicious: isSuspicious,
+      security_flags: securityFlags.length > 0 ? securityFlags : null,
       details: { 
         query: query.substring(0, 200),
         scope,

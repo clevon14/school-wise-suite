@@ -28,6 +28,7 @@ import ReportCards from "./pages/ReportCards";
 import ParentTransportView from "./pages/ParentTransportView";
 import AIAssistant from "./pages/AIAssistant";
 import AdminFineTuning from "./pages/AdminFineTuning";
+import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -259,6 +260,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <AdminFineTuning />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/security"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <SecurityDashboard />
                 </AppLayout>
               </ProtectedRoute>
             }

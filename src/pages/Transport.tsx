@@ -2,18 +2,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Bus, MapPin, Phone } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Plus, Bus, MapPin, Phone, Users, Eye } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { AddBusDialog } from "@/components/transport/AddBusDialog";
+import { AddRouteDialog } from "@/components/transport/AddRouteDialog";
+import { PassengerListDialog } from "@/components/transport/PassengerListDialog";
+import { LiveBusTracking } from "@/components/transport/LiveBusTracking";
 
 export default function Transport() {
+  const [addBusOpen, setAddBusOpen] = useState(false);
+  const [addRouteOpen, setAddRouteOpen] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<{ id: string; name: string } | null>(null);
+  const [trackingRoute, setTrackingRoute] = useState<{ id: string; name: string } | null>(null);
   const { data: buses, isLoading } = useQuery({
     queryKey: ["buses"],
     queryFn: async () => {
@@ -51,11 +53,11 @@ export default function Transport() {
           <p className="text-muted-foreground">Manage buses, routes, and student transportation</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setAddRouteOpen(true)}>
             <MapPin className="h-4 w-4 mr-2" />
-            Manage Routes
+            Add Route
           </Button>
-          <Button>
+          <Button onClick={() => setAddBusOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Bus
           </Button>
@@ -163,6 +165,7 @@ export default function Transport() {
                   <TableHead>Pickup Time</TableHead>
                   <TableHead>Drop Time</TableHead>
                   <TableHead>Monthly Fee</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -174,6 +177,26 @@ export default function Transport() {
                     <TableCell>{route.pickup_time}</TableCell>
                     <TableCell>{route.drop_time}</TableCell>
                     <TableCell>₹{Number(route.monthly_fee).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedRoute({ id: route.id, name: route.route_name })}
+                          title="View Passengers"
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setTrackingRoute({ id: route.id, name: route.route_name })}
+                          title="Track Bus"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -181,6 +204,23 @@ export default function Transport() {
           )}
         </CardContent>
       </Card>
+
+      {/* Live Tracking */}
+      {trackingRoute && (
+        <LiveBusTracking routeId={trackingRoute.id} routeName={trackingRoute.name} />
+      )}
+
+      {/* Dialogs */}
+      <AddBusDialog open={addBusOpen} onOpenChange={setAddBusOpen} />
+      <AddRouteDialog open={addRouteOpen} onOpenChange={setAddRouteOpen} />
+      {selectedRoute && (
+        <PassengerListDialog
+          routeId={selectedRoute.id}
+          routeName={selectedRoute.name}
+          open={!!selectedRoute}
+          onOpenChange={(open) => !open && setSelectedRoute(null)}
+        />
+      )}
     </div>
   );
 }

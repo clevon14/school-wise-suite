@@ -25,6 +25,7 @@ import Quizzes from "./pages/Quizzes";
 import Syllabus from "./pages/Syllabus";
 import Notifications from "./pages/Notifications";
 import ReportCards from "./pages/ReportCards";
+import ParentTransportView from "./pages/ParentTransportView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -186,6 +187,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <ParentPortal />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/transport"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ParentTransportView />
                 </AppLayout>
               </ProtectedRoute>
             }

@@ -102,4 +102,35 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile-specific optimizations */
+  @media (max-width: 768px) {
+    /* Ensure touch targets are at least 44x44px */
+    button, a, input, select, textarea {
+      @apply min-h-[44px];
+    }
+
+    /* Improve text readability on mobile */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Prevent text size adjustments on orientation change */
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* Optimize scroll behavior */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Ensure dialogs are mobile-friendly */
+  @media (max-width: 640px) {
+    [role="dialog"] {
+      @apply max-w-[calc(100vw-2rem)] mx-4;
+    }
+  }
 }

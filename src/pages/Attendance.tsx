@@ -30,47 +30,49 @@ export default function Attendance() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Attendance</h2>
-          <p className="text-muted-foreground">Track daily attendance for students</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Attendance</h2>
+          <p className="text-sm md:text-base text-muted-foreground">Track daily attendance for students</p>
         </div>
         <div className="flex gap-2">
           <CSVAttendanceImport>
-            <Button variant="outline">
+            <Button variant="outline" className="flex-1 md:flex-none">
               <Upload className="h-4 w-4 mr-2" />
-              Import CSV
+              <span className="hidden sm:inline">Import CSV</span>
+              <span className="sm:hidden">Import</span>
             </Button>
           </CSVAttendanceImport>
           <AttendanceMarkingDialog>
-            <Button>
+            <Button className="flex-1 md:flex-none">
               <Plus className="h-4 w-4 mr-2" />
-              Mark Attendance
+              <span className="hidden sm:inline">Mark Attendance</span>
+              <span className="sm:hidden">Mark</span>
             </Button>
           </AttendanceMarkingDialog>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Marked</CardTitle>
-            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Total</CardTitle>
+            <ClipboardCheck className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayStats?.total || 0}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold">{todayStats?.total || 0}</div>
             <p className="text-xs text-muted-foreground">Today</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Present</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Present</CardTitle>
             <div className="h-2 w-2 rounded-full bg-success" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">{todayStats?.present || 0}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold text-success">{todayStats?.present || 0}</div>
             <p className="text-xs text-muted-foreground">
               {todayStats?.total ? Math.round((todayStats.present / todayStats.total) * 100) : 0}%
             </p>
@@ -78,12 +80,12 @@ export default function Attendance() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Absent</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Absent</CardTitle>
             <div className="h-2 w-2 rounded-full bg-destructive" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{todayStats?.absent || 0}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold text-destructive">{todayStats?.absent || 0}</div>
             <p className="text-xs text-muted-foreground">
               {todayStats?.total ? Math.round((todayStats.absent / todayStats.total) * 100) : 0}%
             </p>
@@ -91,12 +93,12 @@ export default function Attendance() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Late</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Late</CardTitle>
             <div className="h-2 w-2 rounded-full bg-warning" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">{todayStats?.late || 0}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold text-warning">{todayStats?.late || 0}</div>
             <p className="text-xs text-muted-foreground">
               {todayStats?.total ? Math.round((todayStats.late / todayStats.total) * 100) : 0}%
             </p>
@@ -104,12 +106,12 @@ export default function Attendance() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Excused</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Excused</CardTitle>
             <div className="h-2 w-2 rounded-full bg-info" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-info">{todayStats?.excused || 0}</div>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold text-info">{todayStats?.excused || 0}</div>
             <p className="text-xs text-muted-foreground">
               {todayStats?.total ? Math.round((todayStats.excused / todayStats.total) * 100) : 0}%
             </p>
@@ -118,9 +120,9 @@ export default function Attendance() {
       </div>
 
       <Tabs defaultValue="report" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="report">Attendance Report</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
+        <TabsList className="w-full md:w-auto grid grid-cols-2 md:inline-grid">
+          <TabsTrigger value="report" className="text-sm">Report</TabsTrigger>
+          <TabsTrigger value="analytics" className="text-sm">Analytics</TabsTrigger>
         </TabsList>
         
         <TabsContent value="report" className="space-y-4">

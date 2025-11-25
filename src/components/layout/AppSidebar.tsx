@@ -49,7 +49,7 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { open } = useSidebar();
+  const { open, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -62,12 +62,19 @@ export function AppSidebar() {
     }
   };
 
+  const handleNavigate = (url: string) => {
+    navigate(url);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="border-r">
       <SidebarContent>
-        <div className="flex h-16 items-center border-b px-6">
-          <GraduationCap className="h-6 w-6 text-primary" />
-          {open && <span className="ml-2 text-lg font-semibold">SMS</span>}
+        <div className="flex h-14 md:h-16 items-center border-b px-4 md:px-6">
+          <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          {open && <span className="ml-2 text-base md:text-lg font-semibold">SchoolCare</span>}
         </div>
         
         <SidebarGroup>
@@ -76,14 +83,17 @@ export function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton 
+                    asChild
+                    onClick={() => handleNavigate(item.url)}
+                  >
                     <NavLink
                       to={item.url}
-                      className="flex items-center gap-3"
+                      className="flex items-center gap-3 min-h-[44px] md:min-h-[36px]"
                       activeClassName="bg-primary text-primary-foreground"
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-4 w-4 md:h-4 md:w-4" />
+                      <span className="text-sm md:text-base">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -92,13 +102,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-auto">
+        <SidebarGroup className="mt-auto border-t">
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout}>
+                <SidebarMenuButton 
+                  onClick={handleLogout}
+                  className="min-h-[44px] md:min-h-[36px]"
+                >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <span className="text-sm md:text-base">Logout</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

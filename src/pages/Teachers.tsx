@@ -31,32 +31,34 @@ export default function Teachers() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Teachers</h2>
-          <p className="text-muted-foreground">Manage teacher records and assignments</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Teachers</h2>
+          <p className="text-sm md:text-base text-muted-foreground">Manage teacher records and assignments</p>
         </div>
         <div className="flex gap-2">
           <CSVExportButton data={teachers || []} type="teachers" />
           <AddTeacherDialog>
-            <Button>
+            <Button className="flex-1 md:flex-none">
               <Plus className="h-4 w-4 mr-2" />
-              Add Teacher
+              <span className="hidden sm:inline">Add Teacher</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </AddTeacherDialog>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>All Teachers</CardTitle>
+        <CardHeader className="px-4 md:px-6">
+          <CardTitle className="text-lg md:text-xl">All Teachers</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 md:px-6">
           {isLoading ? (
-            <p>Loading teachers...</p>
+            <p className="px-4 md:px-0">Loading teachers...</p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Photo</TableHead>
@@ -92,7 +94,8 @@ export default function Teachers() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

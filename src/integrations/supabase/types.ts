@@ -2027,6 +2027,7 @@ export type Database = {
       }
       student_summary: {
         Row: {
+          admission_no: string | null
           admission_number: string | null
           attendance_pct_30d: number | null
           avg_test_score_pct: number | null
@@ -2038,6 +2039,7 @@ export type Database = {
           last_name: string | null
           low_attendance_flag: boolean | null
           low_grade_flag: boolean | null
+          name: string | null
           section: string | null
           student_id: string | null
           tests_taken: number | null

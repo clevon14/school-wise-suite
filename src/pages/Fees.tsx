@@ -39,34 +39,36 @@ export default function Fees() {
     if (allFeeRecords && allFeeRecords.length > 0) {
       exportFeesCSV(allFeeRecords);
       toast({
-        title: "Success",
-        description: "Fee records exported successfully",
+        title: "✓ Export Complete",
+        description: `${allFeeRecords.length} fee records downloaded as CSV`,
       });
     } else {
       toast({
-        title: "No Data",
-        description: "No fee records to export",
+        title: "No Records Yet",
+        description: "Set up fees first, then you can export them",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
+    <div className="space-y-6 md:space-y-8 p-4 md:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Fee Collection</h1>
-          <p className="text-muted-foreground mt-1">Manage tuition and bus fees</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Fee Collection</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
+            {allFeeRecords?.length ? `Managing ${allFeeRecords.length} fee records` : "Set up and collect fees"}
+          </p>
         </div>
-        <Button variant="outline" onClick={handleExportCSV} className="gap-2">
+        <Button variant="outline" onClick={handleExportCSV} className="gap-2 h-11 w-full md:w-auto">
           <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
         <CollectTuitionFeeDialog />
         <CollectBusFeeDialog />
       </div>

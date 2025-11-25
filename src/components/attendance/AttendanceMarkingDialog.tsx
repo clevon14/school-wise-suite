@@ -198,7 +198,11 @@ export function AttendanceMarkingDialog({ children }: { children: React.ReactNod
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["existing-attendance"] });
       queryClient.invalidateQueries({ queryKey: ["today-attendance"] });
-      toast.success("Attendance saved successfully");
+      const studentCount = Object.keys(studentAttendances).length;
+      toast.success(`✓ Attendance marked for ${studentCount} students`, {
+        description: "Records saved and parents will be notified if needed",
+        duration: 5000,
+      });
       setOpen(false);
       form.reset();
       setStudentAttendances({});

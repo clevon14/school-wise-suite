@@ -131,7 +131,10 @@ export function CSVAttendanceImport({ children }: { children: React.ReactNode })
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendance-report"] });
       queryClient.invalidateQueries({ queryKey: ["today-attendance-stats"] });
-      toast.success(`Successfully imported ${count} attendance records`);
+      toast.success(`✓ ${count} attendance records imported successfully`, {
+        description: "All records have been saved and are ready to view",
+        duration: 5000,
+      });
       setOpen(false);
       setFile(null);
     },
@@ -185,11 +188,11 @@ ST004,2024-01-15,excused,Doctor appointment`;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Import Attendance from CSV</DialogTitle>
+          <DialogTitle>Upload Attendance Records</DialogTitle>
           <DialogDescription>
-            Upload a CSV file with columns: admission_number, date, status, remarks
+            Quick import — just select your CSV and we'll handle the rest
           </DialogDescription>
         </DialogHeader>
 
@@ -227,24 +230,36 @@ ST004,2024-01-15,excused,Doctor appointment`;
           <Button
             variant="outline"
             onClick={downloadTemplate}
-            className="w-full"
+            className="w-full h-12"
           >
-            Download Template
+            Download Sample Template
           </Button>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              className="flex-1 h-12"
             >
               Cancel
             </Button>
             <Button
               onClick={handleImport}
               disabled={!file || importAttendance.isPending}
+              className="flex-1 h-12"
             >
-              {importAttendance.isPending ? "Importing..." : "Import"}
+              {importAttendance.isPending ? (
+                <>
+                  <Upload className="mr-2 h-4 w-4 animate-pulse" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Now
+                </>
+              )}
             </Button>
           </div>
         </div>

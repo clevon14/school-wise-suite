@@ -43,7 +43,9 @@ export default function Students() {
       <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Students</h2>
-          <p className="text-sm md:text-base text-muted-foreground">Manage student records and information</p>
+          <p className="text-sm md:text-base text-muted-foreground">
+            {students?.length ? `${students.length} students enrolled` : "Loading students..."}
+          </p>
         </div>
         <div className="flex gap-2">
           <CSVExportButton data={students || []} type="students" />

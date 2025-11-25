@@ -33,19 +33,21 @@ export default function Attendance() {
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Attendance</h2>
-          <p className="text-sm md:text-base text-muted-foreground">Track daily attendance for students</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Today's Attendance</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
+            {todayStats?.total ? `${todayStats.total} students marked today` : "Let's mark today's attendance"}
+          </p>
         </div>
         <div className="flex gap-2">
           <CSVAttendanceImport>
-            <Button variant="outline" className="flex-1 md:flex-none">
+            <Button variant="outline" className="flex-1 md:flex-none h-11">
               <Upload className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Import CSV</span>
               <span className="sm:hidden">Import</span>
             </Button>
           </CSVAttendanceImport>
           <AttendanceMarkingDialog>
-            <Button className="flex-1 md:flex-none">
+            <Button className="flex-1 md:flex-none h-11">
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Mark Attendance</span>
               <span className="sm:hidden">Mark</span>

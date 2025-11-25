@@ -116,6 +116,10 @@ export function ClassFeeStructureManager() {
     <Card>
       <CardHeader>
         <CardTitle>Class-wise Tuition Fee Structure ({academicYear})</CardTitle>
+        <p className="text-sm text-muted-foreground mt-2">
+          Click "Add" to set fees for a class, or "Edit" to modify existing fees. 
+          Fees include tuition, lab, library, sports, and other charges.
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (

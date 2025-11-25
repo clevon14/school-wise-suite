@@ -67,11 +67,8 @@ export default function Fees() {
           <h2 className="text-3xl font-bold tracking-tight">Fee Management</h2>
           <p className="text-muted-foreground">Track payments, generate receipts, and manage fee structure</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           <CSVExportButton data={recentPayments || []} type="fees" />
-          <GenerateBusFeesDialog />
-          <AssignFeesDialog />
-          <AddFeeCategoryDialog />
         </div>
       </div>
 
@@ -156,7 +153,20 @@ export default function Fees() {
           <TabsTrigger value="summary">Monthly Summary</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="assignments">
+        <TabsContent value="assignments" className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Use these buttons to manage fee assignments:
+              <strong> Assign Fees</strong> - Assign fees to individual students or entire classes.
+              <strong> Generate Bus Fees</strong> - Auto-generate bus fees for all students with active transport.
+              <strong> Add Fee Category</strong> - Create new fee types (e.g., exam fees, event fees).
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <AssignFeesDialog />
+              <GenerateBusFeesDialog />
+              <AddFeeCategoryDialog />
+            </div>
+          </div>
           <FeeAssignmentsList />
         </TabsContent>
 

@@ -43,68 +43,63 @@ export function isPuterAvailable(): boolean {
 /**
  * Chat with Puter AI
  * 
- * @param messages - Array of chat messages
- * @param options - Chat options (model, stream)
- * @returns Promise with AI response
+ * @param systemPrompt - System prompt for the AI
+ * @param userPrompt - User's message
+ * @param options - Chat options (model)
+ * @returns Promise with AI response text
  * 
  * @example
- * const response = await puterChat([
- *   { role: "system", content: "You are a helpful assistant" },
- *   { role: "user", content: "Hello!" }
- * ]);
+ * const response = await puterChat(
+ *   "You are a helpful assistant",
+ *   "Hello!"
+ * );
  */
 export async function puterChat(
-  messages: ChatMessage[],
+  systemPrompt: string,
+  userPrompt: string,
   options: ChatOptions = {}
-): Promise<any> {
+): Promise<string> {
   if (!isPuterAvailable()) {
-    throw new Error("AI service is temporarily unavailable. Please try again later.");
+    return "AI service is temporarily unavailable. Please try again later.";
   }
 
   try {
     const response = await window.AI!.chat.completions.create({
       model: options.model || "gpt-4o-mini",
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      stream: options.stream || false,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ]
     });
 
-    return response;
+    return response.choices[0].message.content;
   } catch (error) {
     console.error("Puter AI error:", error);
-    throw new Error("AI service is temporarily unavailable. Please try again later.");
+    return "AI service is temporarily unavailable. Please try again later.";
   }
 }
 
 /**
- * Stream chat with Puter AI
+ * Chat with conversation history using Puter AI
  * 
- * @param messages - Array of chat messages
- * @param onDelta - Callback for each token chunk
- * @param onDone - Callback when stream is complete
- * @param onError - Callback for errors
+ * @param messages - Array of chat messages including system, user, and assistant messages
  * @param options - Chat options (model)
+ * @returns Promise with AI response text
  * 
  * @example
- * await puterChatStream(
- *   [{ role: "user", content: "Tell me a story" }],
- *   (chunk) => console.log(chunk),
- *   () => console.log("Done"),
- *   (error) => console.error(error)
- * );
+ * const response = await puterChatWithHistory([
+ *   { role: "system", content: "You are a helpful assistant" },
+ *   { role: "user", content: "Hello!" },
+ *   { role: "assistant", content: "Hi there!" },
+ *   { role: "user", content: "How are you?" }
+ * ]);
  */
-export async function puterChatStream(
+export async function puterChatWithHistory(
   messages: ChatMessage[],
-  onDelta: (deltaText: string) => void,
-  onDone: () => void,
-  onError: (error: Error) => void,
   options: ChatOptions = {}
-): Promise<void> {
+): Promise<string> {
   if (!isPuterAvailable()) {
-    onError(new Error("AI service is temporarily unavailable. Please try again later."));
-    return;
+    return "AI service is temporarily unavailable. Please try again later.";
   }
 
   try {
@@ -113,22 +108,13 @@ export async function puterChatStream(
       messages: messages.map(msg => ({
         role: msg.role,
         content: msg.content,
-      })),
-      stream: true,
+      }))
     });
 
-    // Handle streaming response
-    for await (const chunk of response) {
-      const content = chunk.choices?.[0]?.delta?.content;
-      if (content) {
-        onDelta(content);
-      }
-    }
-
-    onDone();
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error("Puter AI stream error:", error);
-    onError(new Error("AI service is temporarily unavailable. Please try again later."));
+    console.error("Puter AI error:", error);
+    return "AI service is temporarily unavailable. Please try again later.";
   }
 }
 

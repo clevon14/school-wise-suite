@@ -60,6 +60,43 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## AI Integration
+
+This project uses **Puter AI** for AI-powered features:
+
+- **No API key required** - Puter AI is accessible via `window.AI` in the browser
+- **Free to use** - No cost for basic usage (rate-limited)
+- **Privacy-focused** - Queries are processed client-side when possible
+- **Fallback handling** - Graceful degradation if AI service is unavailable
+
+### How it works
+
+1. RAG context (student data, attendance, fees) is fetched server-side via Supabase Edge Functions
+2. AI chat completions are handled client-side using Puter AI
+3. All queries respect role-based access control (RBAC) for data security
+
+### Usage in code
+
+```typescript
+import { puterChat, puterChatStream } from "@/lib/ai";
+
+// Simple chat
+const response = await puterChat([
+  { role: "system", content: "You are a helpful assistant" },
+  { role: "user", content: "Hello!" }
+]);
+
+// Streaming chat
+await puterChatStream(
+  messages,
+  (chunk) => console.log(chunk), // onDelta
+  () => console.log("Done"),     // onDone
+  (err) => console.error(err)    // onError
+);
+```
+
+For more information, visit [Puter.com](https://puter.com)
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/006bf2c6-e878-4289-81cf-eaa46ffbe094) and click on Share -> Publish.

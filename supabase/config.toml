@@ -3,6 +3,9 @@ project_id = "bwzlgevdcplryjygfsdt"
 [functions.rag-query]
 verify_jwt = true
 
+[functions.rag-context]
+verify_jwt = true
+
 [functions.upsert-embeddings]
 verify_jwt = true
 

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { CSVExportButton } from "@/components/CSVExportButton";
 import {
   Table,
   TableBody,
@@ -58,10 +59,13 @@ export default function Fees() {
           <h2 className="text-3xl font-bold tracking-tight">Fee Management</h2>
           <p className="text-muted-foreground">Track payments, generate receipts, and manage fee structure</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Fee Category
-        </Button>
+        <div className="flex gap-2">
+          <CSVExportButton data={recentPayments || []} type="fees" />
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Fee Category
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

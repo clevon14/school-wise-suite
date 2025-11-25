@@ -7,6 +7,10 @@ import {
   DollarSign,
   FileText,
   Calendar,
+  Bus,
+  Bell,
+  ListChecks,
+  Award,
   LogOut
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -35,8 +39,13 @@ const menuItems = [
   { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
   { title: "Timetable", url: "/timetable", icon: Calendar },
   { title: "Exams", url: "/exams", icon: FileText },
+  { title: "Report Cards", url: "/report-cards", icon: Award },
   { title: "Fees", url: "/fees", icon: DollarSign },
-  { title: "Transport", url: "/transport", icon: Users },
+  { title: "Transport", url: "/transport", icon: Bus },
+  { title: "Quizzes", url: "/quizzes", icon: ListChecks },
+  { title: "Syllabus", url: "/syllabus", icon: BookOpen },
+  { title: "Notifications", url: "/notifications", icon: Bell },
+  { title: "Parent Portal", url: "/parent", icon: Users },
 ];
 
 export function AppSidebar() {

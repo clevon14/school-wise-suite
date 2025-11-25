@@ -71,11 +71,22 @@ export default function Dashboard() {
     },
   ];
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <div className="space-y-4 md:space-y-6">
       <div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-sm md:text-base text-muted-foreground">Welcome back! Here's an overview of your school.</p>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+          {getGreeting()} ✨
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Here's what's happening at Holy Cross School today
+        </p>
       </div>
 
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">

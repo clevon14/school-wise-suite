@@ -78,8 +78,8 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
   const validateForm = () => {
     if (!formData.fullName.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Full name is required",
+        title: "Name Required",
+        description: "Please enter the teacher's full name",
         variant: "destructive",
       });
       return false;
@@ -87,8 +87,8 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
     if (!formData.username.trim() || !/^[a-zA-Z0-9]+$/.test(formData.username)) {
       toast({
-        title: "Validation Error",
-        description: "Username must contain only letters and numbers",
+        title: "Invalid Username",
+        description: "Username can only contain letters and numbers (no spaces or special characters)",
         variant: "destructive",
       });
       return false;
@@ -96,8 +96,8 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
     if (formData.password.length < 8) {
       toast({
-        title: "Validation Error",
-        description: "Password must be at least 8 characters",
+        title: "Password Too Short",
+        description: "Please use at least 8 characters for security",
         variant: "destructive",
       });
       return false;
@@ -105,8 +105,8 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "Validation Error",
-        description: "Passwords do not match",
+        title: "Passwords Don't Match",
+        description: "Please make sure both passwords are identical",
         variant: "destructive",
       });
       return false;
@@ -159,8 +159,8 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
       if (profileError) throw profileError;
 
       toast({
-        title: "Success",
-        description: `Teacher account created successfully. Login: ${formData.username}`,
+        title: "✓ Teacher Account Created",
+        description: `Login: ${formData.username} — Password has been set`,
       });
 
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
@@ -202,9 +202,9 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Add New Teacher</DialogTitle>
+          <DialogTitle className="text-xl md:text-2xl">Add New Teacher</DialogTitle>
           <DialogDescription>
-            Create a new teacher account with login credentials
+            Fill in the details below to create a new teacher account
           </DialogDescription>
         </DialogHeader>
 
@@ -217,6 +217,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 placeholder="Enter teacher's full name"
+                className="h-11"
                 required
               />
             </div>
@@ -231,14 +232,15 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
                 }
                 placeholder="Letters and numbers only"
                 pattern="[a-zA-Z0-9]+"
+                className="h-11"
                 required
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Email will be: {formData.username || "username"}@school.com
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
                 <Input
@@ -248,6 +250,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Minimum 8 characters"
                   minLength={8}
+                  className="h-11"
                   required
                 />
               </div>
@@ -263,6 +266,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
                   }
                   placeholder="Re-enter password"
                   minLength={8}
+                  className="h-11"
                   required
                 />
               </div>
@@ -271,7 +275,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
             <div className="space-y-2">
               <Label htmlFor="classId">Assign Class (Optional)</Label>
               <Select value={formData.classId} onValueChange={(value) => setFormData({ ...formData, classId: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select a class" />
                 </SelectTrigger>
                 <SelectContent>
@@ -288,29 +292,29 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
             <div className="space-y-2">
               <Label>Assign Subjects (Optional)</Label>
-              <div className="border rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
+              <div className="border rounded-lg p-3 md:p-4 space-y-2 max-h-48 overflow-y-auto">
                 {subjects?.map((subject) => (
-                  <div key={subject.id} className="flex items-center space-x-2">
+                  <div key={subject.id} className="flex items-center space-x-3 py-1">
                     <input
                       type="checkbox"
                       id={subject.id}
                       checked={formData.subjects.includes(subject.id)}
                       onChange={() => handleSubjectToggle(subject.id)}
-                      className="rounded border-gray-300"
+                      className="rounded border-gray-300 h-4 w-4"
                     />
-                    <label htmlFor={subject.id} className="text-sm cursor-pointer">
+                    <label htmlFor={subject.id} className="text-sm cursor-pointer flex-1">
                       {subject.name}
                     </label>
                   </div>
                 ))}
                 {!subjects || subjects.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No subjects available</p>
+                  <p className="text-sm text-muted-foreground">No subjects available yet</p>
                 )}
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
@@ -319,10 +323,11 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
                 resetForm();
               }}
               disabled={isSubmitting}
+              className="h-11 w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="h-11 w-full sm:w-auto">
               {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Create Teacher Account
             </Button>

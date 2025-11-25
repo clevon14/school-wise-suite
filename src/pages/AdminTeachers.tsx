@@ -66,8 +66,8 @@ export default function AdminTeachers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
       toast({
-        title: "Success",
-        description: "Teacher account status updated",
+        title: "✓ Account Updated",
+        description: "Teacher account status changed successfully",
       });
     },
     onError: () => {
@@ -88,8 +88,8 @@ export default function AdminTeachers() {
     },
     onSuccess: () => {
       toast({
-        title: "Password Reset Email Sent",
-        description: "Teacher will receive a password reset link via email",
+        title: "✓ Reset Link Sent",
+        description: "Teacher will receive password reset instructions via email",
       });
     },
     onError: () => {
@@ -104,8 +104,8 @@ export default function AdminTeachers() {
   const exportToCSV = () => {
     if (!teachers || teachers.length === 0) {
       toast({
-        title: "No Data",
-        description: "No teachers to export",
+        title: "No Teachers Yet",
+        description: "Create teacher accounts first to export them",
         variant: "destructive",
       });
       return;
@@ -130,6 +130,11 @@ export default function AdminTeachers() {
     a.download = `teachers_${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    
+    toast({
+      title: "✓ Export Complete",
+      description: `${teachers.length} teacher records downloaded`,
+    });
   };
 
   const filteredTeachers = teachers?.filter((teacher) => {
@@ -142,18 +147,20 @@ export default function AdminTeachers() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Teacher Management</h2>
-          <p className="text-muted-foreground">Create and manage teacher accounts</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Teacher Accounts</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
+            {teachers?.length ? `${teachers.length} teacher accounts` : "Create your first teacher account"}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={exportToCSV}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={exportToCSV} className="h-11">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={() => setIsDialogOpen(true)} className="h-11">
             <Plus className="h-4 w-4 mr-2" />
             Add Teacher
           </Button>
@@ -161,23 +168,23 @@ export default function AdminTeachers() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="px-4 md:px-6">
           <div className="flex items-center gap-4">
             <Search className="h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Search by name, username, or email..."
+              placeholder="Search teachers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
+              className="h-11"
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 md:px-6">
           {isLoading ? (
-            <p>Loading teachers...</p>
+            <p className="px-4 md:px-0">Loading teachers...</p>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Full Name</TableHead>
@@ -225,18 +232,20 @@ export default function AdminTeachers() {
                         <Button
                           variant="outline"
                           size="sm"
+                          className="h-9"
                           onClick={() => resetPasswordMutation.mutate(teacher.email)}
                         >
                           <RefreshCw className="h-3 w-3 mr-1" />
-                          Reset Password
+                          <span className="hidden lg:inline">Reset Password</span>
+                          <span className="lg:hidden">Reset</span>
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {filteredTeachers?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        No teachers found
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        {searchQuery ? "No teachers match your search" : "No teacher accounts yet — create your first one!"}
                       </TableCell>
                     </TableRow>
                   )}

@@ -30,14 +30,16 @@ export default function Classes() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Classes</h2>
-          <p className="text-muted-foreground">Manage classes and sections</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Classes</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
+            {classes?.length ? `${classes.length} classes configured` : "Set up your classes"}
+          </p>
         </div>
         <AddClassDialog>
-          <Button>
+          <Button className="h-11 w-full md:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Class
           </Button>
@@ -45,14 +47,15 @@ export default function Classes() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>All Classes</CardTitle>
+        <CardHeader className="px-4 md:px-6">
+          <CardTitle className="text-lg md:text-xl">All Classes</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 md:px-6">
           {isLoading ? (
-            <p>Loading classes...</p>
+            <p className="px-4 md:px-0">Loading classes...</p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Class Name</TableHead>
@@ -93,6 +96,7 @@ export default function Classes() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

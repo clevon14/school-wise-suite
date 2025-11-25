@@ -12,10 +12,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddFeeCategoryDialog } from "@/components/fees/AddFeeCategoryDialog";
 import { AssignFeesDialog } from "@/components/fees/AssignFeesDialog";
 import { FeeAssignmentsList } from "@/components/fees/FeeAssignmentsList";
 import { GenerateBusFeesDialog } from "@/components/fees/GenerateBusFeesDialog";
+import { ClassFeeStructureManager } from "@/components/fees/ClassFeeStructureManager";
+import { VillageBusFeesManager } from "@/components/fees/VillageBusFeesManager";
+import { StudentSpecificFeesManager } from "@/components/fees/StudentSpecificFeesManager";
+import { MonthlyFeeSummary } from "@/components/fees/MonthlyFeeSummary";
 
 export default function Fees() {
   const { data: feeStats, isLoading: statsLoading } = useQuery({
@@ -142,7 +147,35 @@ export default function Fees() {
         </Card>
       </div>
 
-      <FeeAssignmentsList />
+      <Tabs defaultValue="assignments" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="assignments">Fee Assignments</TabsTrigger>
+          <TabsTrigger value="structure">Class Fee Structure</TabsTrigger>
+          <TabsTrigger value="bus">Village Bus Fees</TabsTrigger>
+          <TabsTrigger value="students">Student Settings</TabsTrigger>
+          <TabsTrigger value="summary">Monthly Summary</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="assignments">
+          <FeeAssignmentsList />
+        </TabsContent>
+
+        <TabsContent value="structure">
+          <ClassFeeStructureManager />
+        </TabsContent>
+
+        <TabsContent value="bus">
+          <VillageBusFeesManager />
+        </TabsContent>
+
+        <TabsContent value="students">
+          <StudentSpecificFeesManager />
+        </TabsContent>
+
+        <TabsContent value="summary">
+          <MonthlyFeeSummary />
+        </TabsContent>
+      </Tabs>
 
       <Card>
         <CardHeader>

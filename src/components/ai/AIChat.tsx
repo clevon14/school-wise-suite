@@ -6,7 +6,7 @@ import { Loader2, Send, Sparkles, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportToCSV } from "@/lib/csv-export-client";
-import { puterChatStream, waitForPuter, isPuterAvailable } from "@/lib/ai";
+import { puterChatWithHistory, waitForPuter, isPuterAvailable } from "@/lib/ai";
 
 interface Message {
   role: "user" | "assistant";
@@ -92,51 +92,30 @@ export function AIChat() {
 
       const { systemPrompt } = contextData;
 
-      // Add initial assistant message
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      // Get response from Puter AI
+      const assistantContent = await puterChatWithHistory([
+        { role: "system", content: systemPrompt },
+        ...messages.map(m => ({ role: m.role, content: m.content })),
+        { role: "user", content: currentInput },
+      ]);
 
-      let assistantContent = "";
-
-      // Stream response from Puter AI
-      await puterChatStream(
-        [
-          { role: "system", content: systemPrompt },
-          ...messages.map(m => ({ role: m.role, content: m.content })),
-          { role: "user", content: currentInput },
-        ],
-        (deltaText) => {
-          assistantContent += deltaText;
-          setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMessage = newMessages[newMessages.length - 1];
-            if (lastMessage.role === "assistant") {
-              lastMessage.content = assistantContent;
-            }
-            return newMessages;
-          });
-        },
-        () => {
-          setIsLoading(false);
-        },
-        (error) => {
-          console.error("Puter AI error:", error);
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-          setMessages(prev => prev.slice(0, -1));
-          setIsLoading(false);
-        }
-      );
+      // Add assistant response
+      setMessages(prev => [...prev, { role: "assistant", content: assistantContent }]);
+      setIsLoading(false);
     } catch (error) {
       console.error("AI chat error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
-        variant: "destructive",
-      });
-      setMessages(prev => prev.slice(0, -1));
+      
+      // Only show toast if it's not already a service unavailable message
+      const errorMessage = error instanceof Error ? error.message : "Failed to get AI response. Please try again.";
+      
+      if (errorMessage !== "AI service is temporarily unavailable. Please try again later.") {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+      
       setIsLoading(false);
     }
   };

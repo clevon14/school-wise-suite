@@ -59,6 +59,39 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bus_routes: {
         Row: {
           bus_id: string
@@ -315,6 +348,77 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      documents: {
+        Row: {
+          class_id: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          document_type: string
+          embedding: string | null
+          id: string
+          metadata: Json | null
+          subject_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          class_id?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          document_type: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          subject_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          class_id?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          subject_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "documents_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employee_attendance: {
         Row: {
@@ -1693,6 +1797,23 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_documents: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          class_id: string
+          content: string
+          document_type: string
+          id: string
+          metadata: Json
+          similarity: number
+          subject_id: string
+          title: string
+        }[]
       }
     }
     Enums: {

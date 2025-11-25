@@ -138,13 +138,7 @@ const App = () => (
           />
           <Route
             path="/exams"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Exams />
-                </AppLayout>
-              </ProtectedRoute>
-            }
+            element={<Navigate to="/tests" replace />}
           />
           <Route
             path="/tests"

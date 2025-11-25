@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { AppLayout } from "./components/layout/AppLayout";
 import Auth from "./pages/Auth";
+import TeacherLogin from "./pages/TeacherLogin";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
@@ -29,6 +30,7 @@ import ParentTransportView from "./pages/ParentTransportView";
 import AIAssistant from "./pages/AIAssistant";
 import AdminFineTuning from "./pages/AdminFineTuning";
 import SecurityDashboard from "./pages/SecurityDashboard";
+import AdminTeachers from "./pages/AdminTeachers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +71,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/login/teacher" element={<TeacherLogin />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route
             path="/dashboard"
@@ -270,6 +273,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <SecurityDashboard />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/teachers"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AdminTeachers />
                 </AppLayout>
               </ProtectedRoute>
             }

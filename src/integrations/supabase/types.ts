@@ -1486,62 +1486,92 @@ export type Database = {
         Row: {
           address: string | null
           admission_number: string
+          blood_group: string | null
+          caste: string | null
+          category: string | null
           class_id: string | null
           created_at: string | null
           date_of_birth: string | null
           enrollment_date: string | null
           first_name: string
           gender: string | null
+          height: string | null
+          house: string | null
           id: string
           last_name: string
+          measurement_date: string | null
+          medical_history: string | null
           parent_email: string | null
           parent_name: string | null
           parent_phone: string | null
           photo_url: string | null
+          religion: string | null
+          roll_number: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
           village: string | null
+          weight: string | null
         }
         Insert: {
           address?: string | null
           admission_number: string
+          blood_group?: string | null
+          caste?: string | null
+          category?: string | null
           class_id?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           enrollment_date?: string | null
           first_name: string
           gender?: string | null
+          height?: string | null
+          house?: string | null
           id?: string
           last_name: string
+          measurement_date?: string | null
+          medical_history?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           photo_url?: string | null
+          religion?: string | null
+          roll_number?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
           village?: string | null
+          weight?: string | null
         }
         Update: {
           address?: string | null
           admission_number?: string
+          blood_group?: string | null
+          caste?: string | null
+          category?: string | null
           class_id?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           enrollment_date?: string | null
           first_name?: string
           gender?: string | null
+          height?: string | null
+          house?: string | null
           id?: string
           last_name?: string
+          measurement_date?: string | null
+          medical_history?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           photo_url?: string | null
+          religion?: string | null
+          roll_number?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
           village?: string | null
+          weight?: string | null
         }
         Relationships: [
           {

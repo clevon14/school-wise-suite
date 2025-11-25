@@ -1,1 +1,16 @@
 project_id = "bwzlgevdcplryjygfsdt"
+
+[functions.rag-query]
+verify_jwt = true
+
+[functions.upsert-embeddings]
+verify_jwt = true
+
+[functions.export-csv]
+verify_jwt = true
+
+[functions.audit-log]
+verify_jwt = true
+
+[functions.send-absence-sms]
+verify_jwt = true

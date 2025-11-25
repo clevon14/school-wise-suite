@@ -26,6 +26,7 @@ import Syllabus from "./pages/Syllabus";
 import Notifications from "./pages/Notifications";
 import ReportCards from "./pages/ReportCards";
 import ParentTransportView from "./pages/ParentTransportView";
+import AIAssistant from "./pages/AIAssistant";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -237,6 +238,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <ReportCards />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-assistant"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AIAssistant />
                 </AppLayout>
               </ProtectedRoute>
             }

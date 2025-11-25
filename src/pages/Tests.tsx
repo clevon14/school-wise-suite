@@ -126,47 +126,80 @@ export default function Tests() {
       {/* Filters */}
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Years" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Years</SelectItem>
-              {academicYears.map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Select value={selectedYear || undefined} onValueChange={(value) => setSelectedYear(value || "")}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Years" />
+              </SelectTrigger>
+              <SelectContent>
+                {academicYears.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedYear && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedYear("")}
+                className="w-full h-8"
+              >
+                Clear Filter
+              </Button>
+            )}
+          </div>
 
-          <Select value={selectedClass} onValueChange={setSelectedClass}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Classes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Classes</SelectItem>
-              {classes?.map((cls) => (
-                <SelectItem key={cls.id} value={cls.id}>
-                  {cls.name} {cls.section && `(${cls.section})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Select value={selectedClass || undefined} onValueChange={(value) => setSelectedClass(value || "")}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Classes" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes?.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name} {cls.section && `(${cls.section})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedClass && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedClass("")}
+                className="w-full h-8"
+              >
+                Clear Filter
+              </Button>
+            )}
+          </div>
 
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Subjects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Subjects</SelectItem>
-              {subjects?.map((subject) => (
-                <SelectItem key={subject.id} value={subject.id}>
-                  {subject.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Select value={selectedSubject || undefined} onValueChange={(value) => setSelectedSubject(value || "")}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Subjects" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects?.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedSubject && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedSubject("")}
+                className="w-full h-8"
+              >
+                Clear Filter
+              </Button>
+            )}
+          </div>
 
           <Input
             placeholder="Search tests..."

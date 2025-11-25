@@ -57,6 +57,13 @@ export default function Students() {
             id,
             name,
             section
+          ),
+          fee_assignments(
+            id,
+            amount,
+            status,
+            due_date,
+            fee_category:fee_categories(name)
           )
         `)
         .order("first_name");
@@ -283,70 +290,96 @@ export default function Students() {
                         <TableHead>Admission No.</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Class</TableHead>
-                        <TableHead>Gender</TableHead>
+                        <TableHead>Tuition Fee</TableHead>
+                        <TableHead>Bus Fee</TableHead>
+                        <TableHead>Outstanding</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Parent Contact</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {students.map((student) => (
-                        <TableRow key={student.id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedStudents.includes(student.id)}
-                              onCheckedChange={(checked) => 
-                                handleSelectStudent(student.id, checked as boolean)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage 
-                                src={student.photo_url || undefined} 
-                                alt={`${student.first_name} ${student.last_name}`} 
-                              />
-                              <AvatarFallback>
-                                <User className="h-5 w-5" />
-                              </AvatarFallback>
-                            </Avatar>
-                          </TableCell>
-                          <TableCell className="font-medium">{student.admission_number}</TableCell>
-                          <TableCell>{`${student.first_name} ${student.last_name}`}</TableCell>
-                          <TableCell>
-                            {student.classes 
-                              ? `${student.classes.name} ${student.classes.section || ""}`
-                              : "Not Assigned"
-                            }
-                          </TableCell>
-                          <TableCell className="capitalize">{student.gender || "-"}</TableCell>
-                          <TableCell>
-                            <Badge variant={student.status === "active" ? "default" : "secondary"}>
-                              {student.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{student.parent_phone || "-"}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  await exportToCSV({
-                                    scope: 'student',
-                                    id: student.id,
-                                  });
-                                  toast.success("Student report exported");
-                                } catch (error) {
-                                  toast.error("Failed to export student report");
+                      {students.map((student) => {
+                        const tuitionFee = student.fee_assignments?.find((f: any) => 
+                          f.fee_category?.name === "Tuition Fee"
+                        );
+                        const busFee = student.fee_assignments?.find((f: any) => 
+                          f.fee_category?.name === "Bus Fee"
+                        );
+                        const outstanding = student.fee_assignments
+                          ?.filter((f: any) => f.status === "pending")
+                          ?.reduce((sum: number, f: any) => sum + (f.amount || 0), 0) || 0;
+
+                        return (
+                          <TableRow key={student.id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedStudents.includes(student.id)}
+                                onCheckedChange={(checked) => 
+                                  handleSelectStudent(student.id, checked as boolean)
                                 }
-                              }}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage 
+                                  src={student.photo_url || undefined} 
+                                  alt={`${student.first_name} ${student.last_name}`} 
+                                />
+                                <AvatarFallback>
+                                  <User className="h-5 w-5" />
+                                </AvatarFallback>
+                              </Avatar>
+                            </TableCell>
+                            <TableCell className="font-medium">{student.admission_number}</TableCell>
+                            <TableCell>{`${student.first_name} ${student.last_name}`}</TableCell>
+                            <TableCell>
+                              {student.classes 
+                                ? `${student.classes.name} ${student.classes.section || ""}`
+                                : "Not Assigned"
+                              }
+                            </TableCell>
+                            <TableCell>
+                              {tuitionFee ? `₹${tuitionFee.amount}` : "-"}
+                            </TableCell>
+                            <TableCell>
+                              {busFee ? `₹${busFee.amount}` : "-"}
+                            </TableCell>
+                            <TableCell>
+                              {outstanding > 0 ? (
+                                <span className="font-semibold text-destructive">
+                                  ₹{outstanding.toLocaleString()}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">₹0</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={student.status === "active" ? "default" : "secondary"}>
+                                {student.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    await exportToCSV({
+                                      scope: 'student',
+                                      id: student.id,
+                                    });
+                                    toast.success("Student report exported");
+                                  } catch (error) {
+                                    toast.error("Failed to export student report");
+                                  }
+                                }}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

@@ -46,7 +46,7 @@ export default function Fees() {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [selectedStudentForView, setSelectedStudentForView] = useState<any>(null);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState<string>("");
+  const [paymentAmounts, setPaymentAmounts] = useState<{ [key: string]: string }>({});
   const [paymentMethod, setPaymentMethod] = useState<string>("cash");
 
   const { data: classes } = useQuery({
@@ -189,7 +189,7 @@ export default function Fees() {
         title: "Success",
         description: "Payment recorded successfully",
       });
-      setPaymentAmount("");
+      setPaymentAmounts({});
     },
     onError: (error: any) => {
       toast({
@@ -612,21 +612,53 @@ export default function Fees() {
                           {selectedStudentForView.fee_assignments
                             ?.filter((f: any) => f.status === "pending")
                             .map((fee: any) => (
-                              <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                <div>
+                              <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg gap-4">
+                                <div className="flex-1">
                                   <p className="font-medium">{fee.fee_category?.name}</p>
                                   <p className="text-sm text-muted-foreground">
                                     Due: {new Date(fee.due_date).toLocaleDateString()}
                                   </p>
+                                  <p className="text-lg font-bold mt-1">Total: ₹{fee.amount}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <p className="text-lg font-bold">₹{fee.amount}</p>
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-muted-foreground">Amount</label>
+                                    <Input
+                                      type="number"
+                                      placeholder="Enter amount"
+                                      value={paymentAmounts[fee.id] || ""}
+                                      onChange={(e) => 
+                                        setPaymentAmounts({
+                                          ...paymentAmounts,
+                                          [fee.id]: e.target.value
+                                        })
+                                      }
+                                      className="w-32"
+                                    />
+                                  </div>
                                   <Button
                                     size="sm"
                                     onClick={() => {
+                                      const amount = parseFloat(paymentAmounts[fee.id] || fee.amount.toString());
+                                      if (!amount || amount <= 0) {
+                                        toast({
+                                          title: "Invalid Amount",
+                                          description: "Please enter a valid payment amount",
+                                          variant: "destructive",
+                                        });
+                                        return;
+                                      }
+                                      if (amount > fee.amount) {
+                                        toast({
+                                          title: "Amount Too High",
+                                          description: "Payment amount cannot exceed due amount",
+                                          variant: "destructive",
+                                        });
+                                        return;
+                                      }
                                       recordPaymentMutation.mutate({
                                         studentId: selectedStudentForView.id,
-                                        amount: fee.amount,
+                                        amount: amount,
                                         feeAssignmentId: fee.id,
                                       });
                                     }}

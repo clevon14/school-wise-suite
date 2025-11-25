@@ -6,7 +6,6 @@ import { Loader2, Send, Sparkles, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportToCSV } from "@/lib/csv-export-client";
-import { puterChatWithHistory, waitForPuter, isPuterAvailable } from "@/lib/ai";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,7 +16,6 @@ export function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [puterReady, setPuterReady] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -27,35 +25,8 @@ export function AIChat() {
     }
   }, [messages]);
 
-  // Wait for Puter AI to load
-  useEffect(() => {
-    waitForPuter()
-      .then(() => {
-        setPuterReady(true);
-        console.log("Puter AI is ready");
-      })
-      .catch((error) => {
-        console.error("Puter AI failed to load:", error);
-        toast({
-          title: "AI Service Unavailable",
-          description: "Please refresh the page to use AI features",
-          variant: "destructive",
-        });
-      });
-  }, []);
-
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
-
-    // Check if Puter is available
-    if (!isPuterAvailable()) {
-      toast({
-        title: "AI Service Unavailable",
-        description: "Please refresh the page to use AI features",
-        variant: "destructive",
-      });
-      return;
-    }
 
     const userMessage: Message = { role: "user", content: input };
     const currentInput = input;
@@ -75,47 +46,83 @@ export function AIChat() {
         return;
       }
 
-      // Fetch RAG context from backend
-      const { data: contextData, error: contextError } = await supabase.functions.invoke(
-        'rag-context',
+      // Stream response from rag-query edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-query`,
         {
-          body: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
             query: currentInput,
             scope: "school",
-          },
+            history: messages.map(m => ({ role: m.role, content: m.content })),
+          }),
         }
       );
 
-      if (contextError) {
-        throw contextError;
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Rate limit exceeded. Please try again later.");
+        }
+        if (response.status === 402) {
+          throw new Error("AI credits exhausted. Please add credits to continue.");
+        }
+        throw new Error("Failed to get AI response");
       }
 
-      const { systemPrompt } = contextData;
+      if (!response.body) {
+        throw new Error("No response body");
+      }
 
-      // Get response from Puter AI
-      const assistantContent = await puterChatWithHistory([
-        { role: "system", content: systemPrompt },
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: "user", content: currentInput },
-      ]);
+      // Stream the response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
 
-      // Add assistant response
-      setMessages(prev => [...prev, { role: "assistant", content: assistantContent }]);
+      // Add empty assistant message
+      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                assistantContent += content;
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1].content = assistantContent;
+                  return newMessages;
+                });
+              }
+            } catch (e) {
+              // Ignore JSON parse errors
+            }
+          }
+        }
+      }
+
       setIsLoading(false);
     } catch (error) {
       console.error("AI chat error:", error);
-      
-      // Only show toast if it's not already a service unavailable message
-      const errorMessage = error instanceof Error ? error.message : "Failed to get AI response. Please try again.";
-      
-      if (errorMessage !== "AI service is temporarily unavailable. Please try again later.") {
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
-      
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to get AI response",
+        variant: "destructive",
+      });
       setIsLoading(false);
     }
   };
@@ -206,9 +213,9 @@ export function AIChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask me anything..."
-            disabled={isLoading || !puterReady}
+            disabled={isLoading}
           />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !puterReady}>
+          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

@@ -47,6 +47,13 @@ export type Database = {
             foreignKeyName: "attendance_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
@@ -63,6 +70,7 @@ export type Database = {
           route_name: string
           route_number: string
           updated_at: string | null
+          village: string | null
         }
         Insert: {
           bus_id: string
@@ -74,6 +82,7 @@ export type Database = {
           route_name: string
           route_number: string
           updated_at?: string | null
+          village?: string | null
         }
         Update: {
           bus_id?: string
@@ -85,6 +94,7 @@ export type Database = {
           route_name?: string
           route_number?: string
           updated_at?: string | null
+          village?: string | null
         }
         Relationships: [
           {
@@ -179,6 +189,60 @@ export type Database = {
         }
         Relationships: []
       }
+      class_fee_structure: {
+        Row: {
+          academic_year: string
+          class_id: string
+          created_at: string | null
+          id: string
+          lab_fee: number | null
+          library_fee: number | null
+          other_fees: number | null
+          sports_fee: number | null
+          tuition_fee: number
+          updated_at: string | null
+        }
+        Insert: {
+          academic_year: string
+          class_id: string
+          created_at?: string | null
+          id?: string
+          lab_fee?: number | null
+          library_fee?: number | null
+          other_fees?: number | null
+          sports_fee?: number | null
+          tuition_fee: number
+          updated_at?: string | null
+        }
+        Update: {
+          academic_year?: string
+          class_id?: string
+          created_at?: string | null
+          id?: string
+          lab_fee?: number | null
+          library_fee?: number | null
+          other_fees?: number | null
+          sports_fee?: number | null
+          tuition_fee?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_fee_structure_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_fee_structure_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_subjects: {
         Row: {
           class_id: string
@@ -202,6 +266,13 @@ export type Database = {
           teacher_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "class_subjects_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
           {
             foreignKeyName: "class_subjects_class_id_fkey"
             columns: ["class_id"]
@@ -436,6 +507,13 @@ export type Database = {
             foreignKeyName: "exams_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "exams_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -479,6 +557,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fee_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "fee_assignments_student_id_fkey"
@@ -573,6 +658,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exam_subjects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "marks_student_id_fkey"
@@ -673,8 +765,22 @@ export type Database = {
             foreignKeyName: "notifications_target_class_id_fkey"
             columns: ["target_class_id"]
             isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "notifications_target_class_id_fkey"
+            columns: ["target_class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_target_student_id_fkey"
+            columns: ["target_student_id"]
+            isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "notifications_target_student_id_fkey"
@@ -854,6 +960,13 @@ export type Database = {
             foreignKeyName: "quiz_attempts_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
@@ -951,6 +1064,13 @@ export type Database = {
             foreignKeyName: "quizzes_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "quizzes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1023,6 +1143,13 @@ export type Database = {
             foreignKeyName: "student_transport_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_transport_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
@@ -1047,6 +1174,7 @@ export type Database = {
           status: string | null
           updated_at: string | null
           user_id: string | null
+          village: string | null
         }
         Insert: {
           address?: string | null
@@ -1066,6 +1194,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          village?: string | null
         }
         Update: {
           address?: string | null
@@ -1085,8 +1214,16 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          village?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
           {
             foreignKeyName: "students_class_id_fkey"
             columns: ["class_id"]
@@ -1219,6 +1356,13 @@ export type Database = {
             foreignKeyName: "syllabus_topics_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "syllabus_topics_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1276,6 +1420,13 @@ export type Database = {
             foreignKeyName: "timetable_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "timetable_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1318,7 +1469,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      class_monthly_fee_summary: {
+        Row: {
+          class_id: string | null
+          class_name: string | null
+          collected_amount: number | null
+          collection_percentage: number | null
+          pending_amount: number | null
+          section: string | null
+          total_monthly_fees: number | null
+          total_students: number | null
+        }
+        Relationships: []
+      }
+      student_monthly_fee_summary: {
+        Row: {
+          admission_number: string | null
+          class_name: string | null
+          first_name: string | null
+          last_name: string | null
+          paid_amount: number | null
+          paid_items: number | null
+          pending_amount: number | null
+          section: string | null
+          student_id: string | null
+          total_fee_items: number | null
+          total_monthly_fee: number | null
+          village: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

@@ -1,203 +1,168 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2, Clock, BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AddTopicDialog } from "@/components/syllabus/AddTopicDialog";
+import { TopicProgressCard } from "@/components/syllabus/TopicProgressCard";
+import { PrincipalHeatmap } from "@/components/syllabus/PrincipalHeatmap";
 
 export default function Syllabus() {
-  const { data: topics, isLoading } = useQuery({
-    queryKey: ["syllabus-topics"],
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+
+  // Get current user to determine if they're a teacher
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      return { ...user, employeeId: employee?.id };
+    },
+  });
+
+  const { data: classes } = useQuery({
+    queryKey: ["classes"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("syllabus_topics")
-        .select(`
-          *,
-          class:classes(name, section),
-          subject:subjects(name, code),
-          progress:syllabus_progress(
-            status,
-            hours_taught,
-            completion_date,
-            teacher:employees(first_name, last_name)
-          )
-        `)
-        .order("sequence_order");
-      
+        .from("classes")
+        .select("*")
+        .order("name");
       if (error) throw error;
       return data;
     },
   });
 
-  const calculateProgress = (topics: any[] = []) => {
-    if (topics.length === 0) return 0;
-    const completed = topics.filter((t: any) => 
-      t.progress && t.progress.some((p: any) => p.status === 'completed')
-    ).length;
-    return Math.round((completed / topics.length) * 100);
-  };
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  const groupedByClass = topics?.reduce((acc: any, topic: any) => {
-    const classKey = topic.class ? `${topic.class.name} ${topic.class.section || ''}` : 'Unassigned';
-    if (!acc[classKey]) acc[classKey] = [];
-    acc[classKey].push(topic);
-    return acc;
-  }, {}) || {};
+  const { data: topics, isLoading } = useQuery({
+    queryKey: ["syllabusTopics", selectedClass, selectedSubject, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("syllabus_topics")
+        .select(`
+          *,
+          class:classes(name, section),
+          subject:subjects(name),
+          progress:syllabus_progress(*)
+        `)
+        .order("term", { ascending: false });
+
+      if (selectedClass) query = query.eq("class_id", selectedClass);
+      if (selectedSubject) query = query.eq("subject_id", selectedSubject);
+      if (selectedMonth) query = query.eq("term", selectedMonth);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Flatten progress array to single object
+      return data?.map(topic => ({
+        ...topic,
+        progress: topic.progress?.[0] || null
+      }));
+    },
+    enabled: !!selectedClass || !!selectedSubject,
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Syllabus Tracker</h2>
-          <p className="text-muted-foreground">Monitor curriculum progress across all classes</p>
+          <p className="text-muted-foreground">Track monthly topics and completion progress</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Topic
-        </Button>
+        <AddTopicDialog />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Topics</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{topics?.length || 0}</div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="tracker">
+        <TabsList>
+          <TabsTrigger value="tracker">Topic Tracker</TabsTrigger>
+          <TabsTrigger value="heatmap">Completion Heatmap</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {topics?.filter((t: any) => 
-                t.progress && t.progress.some((p: any) => p.status === 'completed')
-              ).length || 0}
+        <TabsContent value="tracker" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes?.map((cls: any) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name} {cls.section && `- ${cls.section}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects?.map((subject: any) => (
+                  <SelectItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-full h-10 px-3 rounded-md border border-input bg-background"
+            />
+          </div>
+
+          {isLoading ? (
+            <p>Loading topics...</p>
+          ) : topics && topics.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {topics.map((topic: any) => (
+                <TopicProgressCard
+                  key={topic.id}
+                  topic={topic}
+                  teacherId={currentUser?.employeeId || ""}
+                />
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
+              No topics found. Select filters or add a new topic.
+            </p>
+          )}
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {topics?.filter((t: any) => 
-                t.progress && t.progress.some((p: any) => p.status === 'in_progress')
-              ).length || 0}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {isLoading ? (
-        <Card>
-          <CardContent className="p-6">
-            <p>Loading syllabus...</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Tabs defaultValue={Object.keys(groupedByClass)[0]} className="space-y-4">
-          <TabsList>
-            {Object.keys(groupedByClass).map((classKey) => (
-              <TabsTrigger key={classKey} value={classKey}>
-                {classKey}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {Object.entries(groupedByClass).map(([classKey, classTopics]: [string, any]) => (
-            <TabsContent key={classKey} value={classKey} className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Overall Progress</CardTitle>
-                    <span className="text-sm font-medium">{calculateProgress(classTopics)}%</span>
-                  </div>
-                  <Progress value={calculateProgress(classTopics)} className="mt-2" />
-                </CardHeader>
-              </Card>
-
-              <div className="space-y-3">
-                {classTopics.map((topic: any) => {
-                  const progress = topic.progress?.[0];
-                  const status = progress?.status || 'not_started';
-                  
-                  return (
-                    <Card key={topic.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-medium text-muted-foreground">
-                                Topic {topic.sequence_order}
-                              </span>
-                              <h4 className="font-semibold">{topic.topic_name}</h4>
-                            </div>
-                            
-                            <p className="text-sm text-muted-foreground">{topic.description}</p>
-                            
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="text-muted-foreground">
-                                Subject: <span className="font-medium">{topic.subject?.name}</span>
-                              </span>
-                              {topic.planned_hours && (
-                                <span className="text-muted-foreground">
-                                  Planned: <span className="font-medium">{topic.planned_hours}h</span>
-                                </span>
-                              )}
-                              {progress?.hours_taught && (
-                                <span className="text-muted-foreground">
-                                  Taught: <span className="font-medium">{progress.hours_taught}h</span>
-                                </span>
-                              )}
-                            </div>
-
-                            {progress?.teacher && (
-                              <p className="text-xs text-muted-foreground">
-                                Teacher: {progress.teacher.first_name} {progress.teacher.last_name}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex flex-col items-end gap-2">
-                            <Badge
-                              variant={
-                                status === 'completed' ? 'default' :
-                                status === 'in_progress' ? 'secondary' :
-                                'outline'
-                              }
-                            >
-                              {status.replace('_', ' ')}
-                            </Badge>
-                            
-                            {progress?.completion_date && (
-                              <span className="text-xs text-muted-foreground">
-                                Completed: {new Date(progress.completion_date).toLocaleDateString()}
-                              </span>
-                            )}
-                            
-                            <Button variant="outline" size="sm">Update Progress</Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      )}
+        <TabsContent value="heatmap">
+          <PrincipalHeatmap />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -51,8 +51,21 @@ Deno.serve(async (req) => {
       scope = 'school',
       target_id = null,
       top_k = 5,
-      messages = [] 
+      messages = [],
+      use_fine_tuned = false
     } = await req.json();
+
+    // Check fine-tuning config
+    const { data: ftConfig } = await supabaseClient
+      .from('fine_tuning_config')
+      .select('*')
+      .limit(1)
+      .single();
+
+    const shouldUseFT = use_fine_tuned || ftConfig?.use_fine_tuned_model;
+    const modelToUse = shouldUseFT && ftConfig?.fine_tuned_model_id 
+      ? ftConfig.fine_tuned_model_id 
+      : (ftConfig?.base_model || 'google/gemini-2.5-flash');
 
     if (!query) {
       return new Response(
@@ -240,13 +253,15 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: modelToUse,
         messages: [
           { role: 'system', content: contextPrompt },
           ...messages,
           { role: 'user', content: query }
         ],
         stream: true,
+        temperature: ftConfig?.temperature || 0.7,
+        max_tokens: ftConfig?.max_tokens || 500,
       }),
     });
 

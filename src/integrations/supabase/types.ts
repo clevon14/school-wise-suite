@@ -756,6 +756,42 @@ export type Database = {
         }
         Relationships: []
       }
+      fine_tuning_config: {
+        Row: {
+          base_model: string | null
+          created_at: string | null
+          fine_tuned_model_id: string | null
+          id: string
+          max_tokens: number | null
+          notes: string | null
+          temperature: number | null
+          updated_at: string | null
+          use_fine_tuned_model: boolean | null
+        }
+        Insert: {
+          base_model?: string | null
+          created_at?: string | null
+          fine_tuned_model_id?: string | null
+          id?: string
+          max_tokens?: number | null
+          notes?: string | null
+          temperature?: number | null
+          updated_at?: string | null
+          use_fine_tuned_model?: boolean | null
+        }
+        Update: {
+          base_model?: string | null
+          created_at?: string | null
+          fine_tuned_model_id?: string | null
+          id?: string
+          max_tokens?: number | null
+          notes?: string | null
+          temperature?: number | null
+          updated_at?: string | null
+          use_fine_tuned_model?: boolean | null
+        }
+        Relationships: []
+      }
       marks: {
         Row: {
           created_at: string | null
@@ -1812,6 +1848,53 @@ export type Database = {
           },
         ]
       }
+      training_examples: {
+        Row: {
+          category: string | null
+          completion: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_anonymized: boolean | null
+          metadata: Json | null
+          prompt: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          completion: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_anonymized?: boolean | null
+          metadata?: Json | null
+          prompt: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          completion?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_anonymized?: boolean | null
+          metadata?: Json | null
+          prompt?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_examples_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1973,6 +2056,10 @@ export type Database = {
       }
     }
     Functions: {
+      anonymize_training_example: {
+        Args: { example_text: string }
+        Returns: string
+      }
       get_class_facts: {
         Args: {
           p_class_id: string

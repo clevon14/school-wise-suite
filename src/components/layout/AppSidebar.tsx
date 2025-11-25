@@ -12,7 +12,8 @@ import {
   ListChecks,
   Award,
   LogOut,
-  Sparkles
+  Sparkles,
+  Settings
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -34,6 +35,7 @@ import { toast } from "sonner";
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "AI Assistant", url: "/ai-assistant", icon: Sparkles },
+  { title: "Fine-Tuning", url: "/admin/fine-tuning", icon: Settings },
   { title: "Students", url: "/students", icon: GraduationCap },
   { title: "Teachers", url: "/teachers", icon: Users },
   { title: "Classes", url: "/classes", icon: BookOpen },

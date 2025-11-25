@@ -27,6 +27,7 @@ import Notifications from "./pages/Notifications";
 import ReportCards from "./pages/ReportCards";
 import ParentTransportView from "./pages/ParentTransportView";
 import AIAssistant from "./pages/AIAssistant";
+import AdminFineTuning from "./pages/AdminFineTuning";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -248,6 +249,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <AIAssistant />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/fine-tuning"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AdminFineTuning />
                 </AppLayout>
               </ProtectedRoute>
             }

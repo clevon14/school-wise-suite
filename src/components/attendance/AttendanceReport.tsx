@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Download } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { CalendarIcon, Download, Pencil, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { exportAttendance } from "@/lib/csv-export";
+import { EditAttendanceDialog } from "./EditAttendanceDialog";
+import { toast } from "sonner";
 
 export function AttendanceReport() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedClass, setSelectedClass] = useState<string>("");
+  const [editRecord, setEditRecord] = useState<any>(null);
+  const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: classes } = useQuery({
     queryKey: ["classes"],
@@ -97,6 +112,27 @@ export function AttendanceReport() {
       exportAttendance(attendance);
     }
   };
+
+  const deleteAttendance = useMutation({
+    mutationFn: async (recordId: string) => {
+      const { error } = await supabase
+        .from("attendance")
+        .delete()
+        .eq("id", recordId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance-report"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["today-attendance"] });
+      toast.success("Attendance record deleted successfully");
+      setDeleteRecordId(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete attendance record");
+    },
+  });
 
   return (
     <Card>
@@ -169,6 +205,7 @@ export function AttendanceReport() {
                 <TableHead>Class</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Remarks</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -191,6 +228,24 @@ export function AttendanceReport() {
                   <TableCell className="text-sm text-muted-foreground">
                     {record.remarks || "-"}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditRecord(record)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteRecordId(record.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -201,6 +256,36 @@ export function AttendanceReport() {
           </p>
         )}
       </CardContent>
+
+      <EditAttendanceDialog
+        record={editRecord}
+        open={!!editRecord}
+        onOpenChange={(open) => !open && setEditRecord(null)}
+      />
+
+      <AlertDialog
+        open={!!deleteRecordId}
+        onOpenChange={(open) => !open && setDeleteRecordId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Attendance Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this attendance record? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteRecordId && deleteAttendance.mutate(deleteRecordId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteAttendance.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

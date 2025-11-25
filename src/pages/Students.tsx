@@ -3,10 +3,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Trash2, UserX } from "lucide-react";
+import { Plus, User, Download, Trash2, UserX, Filter } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -35,7 +42,9 @@ export default function Students() {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showClassDeleteDialog, setShowClassDeleteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
+  const [selectedClass, setSelectedClass] = useState<string>("all");
   const queryClient = useQueryClient();
   const { data: allStudents, isLoading } = useQuery({
     queryKey: ["students"],
@@ -45,6 +54,7 @@ export default function Students() {
         .select(`
           *,
           classes:class_id (
+            id,
             name,
             section
           )
@@ -56,9 +66,23 @@ export default function Students() {
     },
   });
 
-  const students = allStudents?.filter(s => 
-    activeTab === "active" ? s.status === "active" : s.status === "transferred"
-  ) || [];
+  const { data: classes } = useQuery({
+    queryKey: ["classes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("classes")
+        .select("id, name, section")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const students = allStudents?.filter(s => {
+    const statusMatch = activeTab === "active" ? s.status === "active" : s.status === "transferred";
+    const classMatch = selectedClass === "all" || s.class_id === selectedClass;
+    return statusMatch && classMatch;
+  }) || [];
 
   const bulkDelete = useMutation({
     mutationFn: async (studentIds: string[]) => {
@@ -77,6 +101,27 @@ export default function Students() {
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to delete students");
+    },
+  });
+
+  const deleteByClass = useMutation({
+    mutationFn: async (classId: string) => {
+      const studentsToDelete = allStudents?.filter(s => s.class_id === classId).map(s => s.id) || [];
+      const { error } = await supabase
+        .from("students")
+        .delete()
+        .in("id", studentsToDelete);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Class students deleted successfully");
+      setShowClassDeleteDialog(false);
+      setSelectedClass("all");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete class students");
     },
   });
 
@@ -136,6 +181,38 @@ export default function Students() {
           </AddStudentDialog>
         </div>
       </div>
+
+      {/* Filter by Class */}
+      <Card>
+        <CardContent className="py-3">
+          <div className="flex items-center gap-4">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Filter by class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Classes</SelectItem>
+                {classes?.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name} {cls.section || ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedClass !== "all" && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowClassDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Class Students
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {selectedStudents.length > 0 && (
         <Card className="bg-muted">
@@ -315,6 +392,30 @@ export default function Students() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => transferStudents.mutate(selectedStudents)}>
               Transfer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Class Delete Confirmation Dialog */}
+      <AlertDialog open={showClassDeleteDialog} onOpenChange={setShowClassDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Class Students</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete all students from{" "}
+              {classes?.find(c => c.id === selectedClass)?.name || "this class"}? 
+              This will delete {students.length} student{students.length > 1 ? 's' : ''}.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteByClass.mutate(selectedClass)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

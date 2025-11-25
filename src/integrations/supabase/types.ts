@@ -54,6 +54,13 @@ export type Database = {
             foreignKeyName: "attendance_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
@@ -271,6 +278,13 @@ export type Database = {
             foreignKeyName: "class_fee_structure_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_fee_structure_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -304,6 +318,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_subjects_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
             referencedColumns: ["class_id"]
           },
           {
@@ -395,6 +416,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "documents_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
             referencedColumns: ["class_id"]
           },
           {
@@ -618,6 +646,13 @@ export type Database = {
             foreignKeyName: "exams_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "exams_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -667,6 +702,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fee_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_summary"
             referencedColumns: ["student_id"]
           },
           {
@@ -768,6 +810,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_summary"
             referencedColumns: ["student_id"]
           },
           {
@@ -876,6 +925,13 @@ export type Database = {
             foreignKeyName: "notifications_target_class_id_fkey"
             columns: ["target_class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "notifications_target_class_id_fkey"
+            columns: ["target_class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -884,6 +940,13 @@ export type Database = {
             columns: ["target_student_id"]
             isOneToOne: false
             referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "notifications_target_student_id_fkey"
+            columns: ["target_student_id"]
+            isOneToOne: false
+            referencedRelation: "student_summary"
             referencedColumns: ["student_id"]
           },
           {
@@ -1071,6 +1134,13 @@ export type Database = {
             foreignKeyName: "quiz_attempts_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
@@ -1175,6 +1245,13 @@ export type Database = {
             foreignKeyName: "quizzes_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "quizzes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1254,6 +1331,13 @@ export type Database = {
             foreignKeyName: "student_transport_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "student_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_transport_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
@@ -1326,6 +1410,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
             referencedColumns: ["class_id"]
           },
           {
@@ -1467,6 +1558,13 @@ export type Database = {
             foreignKeyName: "syllabus_topics_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "syllabus_topics_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1526,6 +1624,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "test_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_summary"
             referencedColumns: ["student_id"]
           },
           {
@@ -1603,6 +1708,13 @@ export type Database = {
             foreignKeyName: "tests_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "tests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1674,6 +1786,13 @@ export type Database = {
             foreignKeyName: "timetable_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "timetable_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1729,6 +1848,20 @@ export type Database = {
         }
         Relationships: []
       }
+      class_summary: {
+        Row: {
+          academic_year: string | null
+          at_risk_count: number | null
+          avg_attendance_pct: number | null
+          avg_test_score_pct: number | null
+          class_id: string | null
+          class_name: string | null
+          fee_collection_pct: number | null
+          section: string | null
+          total_students: number | null
+        }
+        Relationships: []
+      }
       student_monthly_fee_summary: {
         Row: {
           admission_number: string | null
@@ -1745,6 +1878,48 @@ export type Database = {
           village: string | null
         }
         Relationships: []
+      }
+      student_summary: {
+        Row: {
+          admission_number: string | null
+          attendance_pct_30d: number | null
+          avg_test_score_pct: number | null
+          class_id: string | null
+          class_name: string | null
+          fees_due: number | null
+          fees_paid: number | null
+          first_name: string | null
+          last_name: string | null
+          low_attendance_flag: boolean | null
+          low_grade_flag: boolean | null
+          section: string | null
+          student_id: string | null
+          tests_taken: number | null
+          village: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       test_statistics: {
         Row: {
@@ -1777,6 +1952,13 @@ export type Database = {
             foreignKeyName: "tests_class_id_fkey"
             columns: ["class_id"]
             isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "tests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
@@ -1791,6 +1973,22 @@ export type Database = {
       }
     }
     Functions: {
+      get_class_facts: {
+        Args: {
+          p_class_id: string
+          p_month_end?: string
+          p_month_start?: string
+        }
+        Returns: Json
+      }
+      get_student_facts: {
+        Args: {
+          p_month_end?: string
+          p_month_start?: string
+          p_student_id: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

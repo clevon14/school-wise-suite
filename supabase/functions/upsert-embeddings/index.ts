@@ -44,11 +44,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { title, content, document_type, class_id, subject_id, metadata } = await req.json();
+    const { doc_id, title, content, type: document_type, metadata = {} } = await req.json();
 
     if (!title || !content || !document_type) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: title, content, document_type' }),
+        JSON.stringify({ error: 'Missing required fields: title, content, type (document_type)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate embedding using Lovable AI
+    // Generate embedding using Lovable AI (OpenAI compatible)
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -86,43 +86,74 @@ Deno.serve(async (req) => {
     });
 
     if (!embeddingResponse.ok) {
+      const errorText = await embeddingResponse.text();
+      console.error('Embedding API error:', embeddingResponse.status, errorText);
       throw new Error(`Embedding API error: ${embeddingResponse.status}`);
     }
 
     const embeddingData = await embeddingResponse.json();
     const embedding = embeddingData.data[0].embedding;
 
-    // Insert document with embedding
-    const { data: document, error: insertError } = await supabaseClient
-      .from('documents')
-      .insert({
-        title,
-        content,
-        document_type,
-        class_id,
-        subject_id,
-        created_by: employee.id,
-        embedding,
-        metadata: metadata || {},
-      })
-      .select()
-      .single();
+    // Upsert document with embedding
+    const documentData: any = {
+      title,
+      content,
+      document_type,
+      created_by: employee.id,
+      embedding,
+      metadata: {
+        ...metadata,
+        text_length: content.length,
+        indexed_at: new Date().toISOString(),
+      },
+    };
 
-    if (insertError) {
-      throw insertError;
+    // Add optional fields if provided
+    if (metadata.class_id) documentData.class_id = metadata.class_id;
+    if (metadata.subject_id) documentData.subject_id = metadata.subject_id;
+
+    let document;
+    if (doc_id) {
+      // Update existing document
+      const { data, error: updateError } = await supabaseClient
+        .from('documents')
+        .update(documentData)
+        .eq('id', doc_id)
+        .select()
+        .single();
+      
+      if (updateError) throw updateError;
+      document = data;
+    } else {
+      // Insert new document
+      const { data, error: insertError } = await supabaseClient
+        .from('documents')
+        .insert(documentData)
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+      document = data;
     }
 
     // Log the action
     await supabaseClient.from('audit_logs').insert({
       user_id: user.id,
-      action: 'document_created',
+      action: doc_id ? 'document_updated' : 'document_created',
       resource_type: 'document',
       resource_id: document.id,
-      details: { title, document_type },
+      details: { title, document_type, doc_id },
     });
 
     return new Response(
-      JSON.stringify({ success: true, document }),
+      JSON.stringify({ 
+        success: true, 
+        document: {
+          id: document.id,
+          title: document.title,
+          document_type: document.document_type,
+        }
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

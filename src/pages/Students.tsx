@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { CSVExportButton } from "@/components/CSVExportButton";
 import {
   Table,
   TableBody,
@@ -40,10 +41,13 @@ export default function Students() {
           <h2 className="text-3xl font-bold tracking-tight">Students</h2>
           <p className="text-muted-foreground">Manage student records and information</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Student
-        </Button>
+        <div className="flex gap-2">
+          <CSVExportButton data={students || []} type="students" />
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Student
+          </Button>
+        </div>
       </div>
 
       <Card>

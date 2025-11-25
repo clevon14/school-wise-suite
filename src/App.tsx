@@ -14,6 +14,15 @@ import Teachers from "./pages/Teachers";
 import Classes from "./pages/Classes";
 import Subjects from "./pages/Subjects";
 import Attendance from "./pages/Attendance";
+import Fees from "./pages/Fees";
+import Exams from "./pages/Exams";
+import Timetable from "./pages/Timetable";
+import Transport from "./pages/Transport";
+import ParentPortal from "./pages/ParentPortal";
+import Quizzes from "./pages/Quizzes";
+import Syllabus from "./pages/Syllabus";
+import Notifications from "./pages/Notifications";
+import ReportCards from "./pages/ReportCards";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -111,6 +120,96 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Attendance />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fees"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Fees />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/exams"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Exams />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetable"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Timetable />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Transport />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ParentPortal />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quizzes"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Quizzes />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/syllabus"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Syllabus />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Notifications />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/report-cards"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ReportCards />
                 </AppLayout>
               </ProtectedRoute>
             }

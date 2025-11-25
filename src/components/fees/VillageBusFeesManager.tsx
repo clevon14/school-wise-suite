@@ -80,6 +80,10 @@ export function VillageBusFeesManager() {
     <Card>
       <CardHeader>
         <CardTitle>Village-based Bus Fees</CardTitle>
+        <p className="text-sm text-muted-foreground mt-2">
+          Set the village name and monthly bus fee for each route. 
+          Students assigned to that village will automatically get the corresponding bus fee.
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (

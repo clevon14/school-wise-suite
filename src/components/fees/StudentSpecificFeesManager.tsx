@@ -108,7 +108,11 @@ export function StudentSpecificFeesManager() {
     <Card>
       <CardHeader>
         <CardTitle>Student-specific Fee Settings</CardTitle>
-        <div className="flex gap-4 items-center">
+        <p className="text-sm text-muted-foreground mt-2">
+          Assign villages to students. When you set a student's village, they will automatically 
+          receive the bus fee for that village's route.
+        </p>
+        <div className="flex gap-4 items-center mt-4">
           <Select value={selectedClass} onValueChange={setSelectedClass}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Select a class" />

@@ -33,7 +33,12 @@ export function FeeAssignmentsList() {
         .from("fee_assignments")
         .select(`
           *,
-          student:students(first_name, last_name, admission_number),
+          student:students(
+            first_name, 
+            last_name, 
+            admission_number,
+            class:classes(name, section)
+          ),
           fee_category:fee_categories(name, frequency)
         `)
         .order("due_date", { ascending: false });
@@ -114,6 +119,7 @@ export function FeeAssignmentsList() {
               <TableRow>
                 <TableHead>Student</TableHead>
                 <TableHead>Admission No.</TableHead>
+                <TableHead>Class</TableHead>
                 <TableHead>Fee Category</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Due Date</TableHead>
@@ -130,6 +136,11 @@ export function FeeAssignmentsList() {
                       : "N/A"}
                   </TableCell>
                   <TableCell>{assignment.student?.admission_number || "N/A"}</TableCell>
+                  <TableCell>
+                    {assignment.student?.class
+                      ? `${assignment.student.class.name}${assignment.student.class.section ? ' - ' + assignment.student.class.section : ''}`
+                      : "N/A"}
+                  </TableCell>
                   <TableCell>
                     {assignment.fee_category?.name || "N/A"}
                     <span className="text-xs text-muted-foreground ml-2">

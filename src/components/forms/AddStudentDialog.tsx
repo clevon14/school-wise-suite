@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,12 +43,14 @@ const studentSchema = z.object({
   parent_email: z.string().trim().email("Invalid email").max(255).optional().or(z.literal("")),
   parent_phone: z.string().trim().max(20).optional(),
   address: z.string().trim().max(500).optional(),
+  photo: z.instanceof(File).optional(),
 });
 
 type StudentFormValues = z.infer<typeof studentSchema>;
 
 export function AddStudentDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: classes } = useQuery({
@@ -80,6 +83,28 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
 
   const createStudent = useMutation({
     mutationFn: async (values: StudentFormValues) => {
+      let photo_url = null;
+
+      // Upload photo if provided
+      if (values.photo) {
+        setUploading(true);
+        const fileExt = values.photo.name.split('.').pop();
+        const fileName = `students/${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('photos')
+          .upload(fileName, values.photo);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('photos')
+          .getPublicUrl(fileName);
+        
+        photo_url = publicUrl;
+        setUploading(false);
+      }
+
       const { data, error } = await supabase
         .from("students")
         .insert([{
@@ -93,6 +118,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
           parent_name: values.parent_name || null,
           parent_phone: values.parent_phone || null,
           address: values.address || null,
+          photo_url,
           status: "active",
         }])
         .select()
@@ -130,6 +156,31 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="photo"
+              render={({ field: { value, onChange, ...field } }) => (
+                <FormItem>
+                  <FormLabel>Photo</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) onChange(file);
+                        }}
+                        {...field}
+                      />
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -310,8 +361,8 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createStudent.isPending}>
-                {createStudent.isPending ? "Adding..." : "Add Student"}
+              <Button type="submit" disabled={createStudent.isPending || uploading}>
+                {uploading ? "Uploading..." : createStudent.isPending ? "Adding..." : "Add Student"}
               </Button>
             </div>
           </form>

@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddTeacherDialog } from "@/components/forms/AddTeacherDialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -58,6 +59,7 @@ export default function Teachers() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Photo</TableHead>
                   <TableHead>Employee No.</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
@@ -69,6 +71,14 @@ export default function Teachers() {
               <TableBody>
                 {teachers?.map((teacher) => (
                   <TableRow key={teacher.id}>
+                    <TableCell>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={teacher.photo_url || undefined} alt={`${teacher.first_name} ${teacher.last_name}`} />
+                        <AvatarFallback>
+                          <User className="h-5 w-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </TableCell>
                     <TableCell className="font-medium">{teacher.employee_number}</TableCell>
                     <TableCell>{`${teacher.first_name} ${teacher.last_name}`}</TableCell>
                     <TableCell>{teacher.email}</TableCell>

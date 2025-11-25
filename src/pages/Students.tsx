@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User } from "lucide-react";
+import { Plus, User, Download } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { exportToCSV } from "@/lib/csv-export-client";
+import { toast } from "sonner";
 
 export default function Students() {
   const { data: students, isLoading } = useQuery({
@@ -74,6 +76,7 @@ export default function Students() {
                   <TableHead>Gender</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Parent Contact</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,6 +105,25 @@ export default function Students() {
                       </Badge>
                     </TableCell>
                     <TableCell>{student.parent_phone || "-"}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            await exportToCSV({
+                              scope: 'student',
+                              id: student.id,
+                            });
+                            toast.success("Student report exported");
+                          } catch (error) {
+                            toast.error("Failed to export student report");
+                          }
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

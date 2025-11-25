@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { AddClassDialog } from "@/components/forms/AddClassDialog";
 import {
   Table,
@@ -12,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { exportToCSV } from "@/lib/csv-export-client";
+import { toast } from "sonner";
 
 export default function Classes() {
   const { data: classes, isLoading } = useQuery({
@@ -66,7 +68,26 @@ export default function Classes() {
                     <TableCell>{classItem.section || "-"}</TableCell>
                     <TableCell>{classItem.academic_year}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm">View</Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await exportToCSV({
+                                scope: 'class',
+                                id: classItem.id,
+                              });
+                              toast.success("Class summary exported");
+                            } catch (error) {
+                              toast.error("Failed to export class summary");
+                            }
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

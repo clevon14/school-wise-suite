@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { exportToCSV } from "@/lib/csv-export-client";
 
 interface Message {
   role: "user" | "assistant";
@@ -146,9 +147,40 @@ export function AIChat() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 p-4 border-b">
-        <Sparkles className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold">SchoolCare AI Assistant</h2>
+      <div className="flex items-center justify-between gap-2 p-4 border-b">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold">SchoolCare AI Assistant</h2>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={async () => {
+            const now = new Date();
+            try {
+              await exportToCSV({
+                scope: 'month_summary',
+                filters: {
+                  month: now.getMonth() + 1,
+                  year: now.getFullYear(),
+                },
+              });
+              toast({
+                title: "Success",
+                description: "Monthly summary exported successfully",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to export monthly summary",
+                variant: "destructive",
+              });
+            }
+          }}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export Report
+        </Button>
       </div>
 
       <ScrollArea ref={scrollRef} className="flex-1 p-4">

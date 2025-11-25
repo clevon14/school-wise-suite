@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import {
   Table,
@@ -13,6 +12,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AddFeeCategoryDialog } from "@/components/fees/AddFeeCategoryDialog";
+import { AssignFeesDialog } from "@/components/fees/AssignFeesDialog";
+import { FeeAssignmentsList } from "@/components/fees/FeeAssignmentsList";
 
 export default function Fees() {
   const { data: feeStats, isLoading: statsLoading } = useQuery({
@@ -59,12 +61,10 @@ export default function Fees() {
           <h2 className="text-3xl font-bold tracking-tight">Fee Management</h2>
           <p className="text-muted-foreground">Track payments, generate receipts, and manage fee structure</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <CSVExportButton data={recentPayments || []} type="fees" />
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Fee Category
-          </Button>
+          <AssignFeesDialog />
+          <AddFeeCategoryDialog />
         </div>
       </div>
 
@@ -139,6 +139,8 @@ export default function Fees() {
           </CardContent>
         </Card>
       </div>
+
+      <FeeAssignmentsList />
 
       <Card>
         <CardHeader>

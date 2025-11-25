@@ -181,16 +181,19 @@ export function CollectTuitionFeeDialog() {
 
                   return (
                     <Card key={student.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
                           <p className="font-medium">
                             {student.first_name} {student.last_name}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {student.admission_number}
-                          </p>
+                          <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                            <p>{student.admission_number} • {student.class?.name}</p>
+                            {student.parent_name && <p>Parent: {student.parent_name}</p>}
+                            {student.parent_phone && <p>Phone: {student.parent_phone}</p>}
+                            {student.address && <p className="truncate">Address: {student.address}</p>}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-shrink-0">
                           <p className="font-semibold text-lg">
                             ₹{Number(feeAssignment.amount).toLocaleString()}
                           </p>

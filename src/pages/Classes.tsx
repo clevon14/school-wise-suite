@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { AddClassDialog } from "@/components/forms/AddClassDialog";
 import {
   Table,
   TableBody,
@@ -33,10 +34,12 @@ export default function Classes() {
           <h2 className="text-3xl font-bold tracking-tight">Classes</h2>
           <p className="text-muted-foreground">Manage classes and sections</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Class
-        </Button>
+        <AddClassDialog>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Class
+          </Button>
+        </AddClassDialog>
       </div>
 
       <Card>

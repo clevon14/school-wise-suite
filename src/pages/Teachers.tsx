@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
+import { AddTeacherDialog } from "@/components/forms/AddTeacherDialog";
 import {
   Table,
   TableBody,
@@ -37,10 +38,12 @@ export default function Teachers() {
         </div>
         <div className="flex gap-2">
           <CSVExportButton data={teachers || []} type="teachers" />
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Teacher
-          </Button>
+          <AddTeacherDialog>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Teacher
+            </Button>
+          </AddTeacherDialog>
         </div>
       </div>
 

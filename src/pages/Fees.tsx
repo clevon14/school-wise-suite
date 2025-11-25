@@ -51,7 +51,12 @@ export default function Fees() {
         .select(`
           *,
           fee_assignment:fee_assignments(
-            student:students(first_name, last_name, admission_number)
+            student:students(
+              first_name, 
+              last_name, 
+              admission_number,
+              class:classes(name, section)
+            )
           )
         `)
         .order("payment_date", { ascending: false })
@@ -204,6 +209,7 @@ export default function Fees() {
                 <TableRow>
                   <TableHead>Receipt No.</TableHead>
                   <TableHead>Student</TableHead>
+                  <TableHead>Class</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Method</TableHead>
@@ -217,6 +223,11 @@ export default function Fees() {
                     <TableCell>
                       {payment.fee_assignment?.student
                         ? `${payment.fee_assignment.student.first_name} ${payment.fee_assignment.student.last_name}`
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {payment.fee_assignment?.student?.class
+                        ? `${payment.fee_assignment.student.class.name}${payment.fee_assignment.student.class.section ? ' - ' + payment.fee_assignment.student.class.section : ''}`
                         : "N/A"}
                     </TableCell>
                     <TableCell>₹{Number(payment.amount).toLocaleString()}</TableCell>

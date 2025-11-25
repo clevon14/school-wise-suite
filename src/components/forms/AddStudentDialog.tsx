@@ -30,18 +30,30 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 const studentSchema = z.object({
   admission_number: z.string().trim().min(1, "Admission number is required").max(50),
+  roll_number: z.string().trim().max(50).optional(),
   first_name: z.string().trim().min(1, "First name is required").max(100),
   last_name: z.string().trim().min(1, "Last name is required").max(100),
   date_of_birth: z.string().min(1, "Date of birth is required"),
   gender: z.enum(["male", "female", "other"]),
   class_id: z.string().uuid("Please select a class"),
-  parent_name: z.string().trim().max(200).optional(),
-  parent_email: z.string().trim().email("Invalid email").max(255).optional().or(z.literal("")),
+  category: z.string().trim().max(50).optional(),
+  religion: z.string().trim().max(50).optional(),
+  caste: z.string().trim().max(50).optional(),
   parent_phone: z.string().trim().max(20).optional(),
+  parent_email: z.string().trim().email("Invalid email").max(255).optional().or(z.literal("")),
+  enrollment_date: z.string().optional(),
+  blood_group: z.string().trim().max(10).optional(),
+  house: z.string().trim().max(50).optional(),
+  height: z.string().trim().max(20).optional(),
+  weight: z.string().trim().max(20).optional(),
+  measurement_date: z.string().optional(),
+  medical_history: z.string().trim().max(1000).optional(),
+  parent_name: z.string().trim().max(200).optional(),
   address: z.string().trim().max(500).optional(),
   photo: z.instanceof(File).optional(),
 });
@@ -69,14 +81,25 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
     resolver: zodResolver(studentSchema),
     defaultValues: {
       admission_number: "",
+      roll_number: "",
       first_name: "",
       last_name: "",
       date_of_birth: "",
       gender: "male",
       class_id: "",
-      parent_name: "",
-      parent_email: "",
+      category: "",
+      religion: "",
+      caste: "",
       parent_phone: "",
+      parent_email: "",
+      enrollment_date: new Date().toISOString().split('T')[0],
+      blood_group: "",
+      house: "",
+      height: "",
+      weight: "",
+      measurement_date: new Date().toISOString().split('T')[0],
+      medical_history: "",
+      parent_name: "",
       address: "",
     },
   });
@@ -109,14 +132,25 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
         .from("students")
         .insert([{
           admission_number: values.admission_number,
+          roll_number: values.roll_number || null,
           first_name: values.first_name,
           last_name: values.last_name,
           date_of_birth: values.date_of_birth,
           gender: values.gender,
           class_id: values.class_id,
-          parent_email: values.parent_email || null,
-          parent_name: values.parent_name || null,
+          category: values.category || null,
+          religion: values.religion || null,
+          caste: values.caste || null,
           parent_phone: values.parent_phone || null,
+          parent_email: values.parent_email || null,
+          enrollment_date: values.enrollment_date || null,
+          blood_group: values.blood_group || null,
+          house: values.house || null,
+          height: values.height || null,
+          weight: values.weight || null,
+          measurement_date: values.measurement_date || null,
+          medical_history: values.medical_history || null,
+          parent_name: values.parent_name || null,
           address: values.address || null,
           photo_url,
           status: "active",
@@ -146,50 +180,40 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Student</DialogTitle>
+          <DialogTitle>Student Admission</DialogTitle>
           <DialogDescription>
-            Enter student details to add them to the system
+            Enter complete student details for admission
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="photo"
-              render={({ field: { value, onChange, ...field } }) => (
-                <FormItem>
-                  <FormLabel>Photo</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) onChange(file);
-                        }}
-                        {...field}
-                      />
-                      <Upload className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Row 1: Admission No, Roll Number, Class, Section */}
+            <div className="grid grid-cols-4 gap-4">
               <FormField
                 control={form.control}
                 name="admission_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Admission Number *</FormLabel>
+                    <FormLabel>Admission No *</FormLabel>
                     <FormControl>
-                      <Input placeholder="STU001" {...field} />
+                      <Input placeholder="Enter admission number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="roll_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Roll Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter roll number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -202,16 +226,16 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select class" />
+                          <SelectValue placeholder="Select" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {classes?.map((cls) => (
                           <SelectItem key={cls.id} value={cls.id}>
-                            {cls.name} {cls.section || ""}
+                            {cls.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -220,9 +244,17 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                   </FormItem>
                 )}
               />
+
+              <FormItem>
+                <FormLabel>Section</FormLabel>
+                <FormControl>
+                  <Input placeholder="Select" disabled value={classes?.find(c => c.id === form.watch("class_id"))?.section || ""} />
+                </FormControl>
+              </FormItem>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 2: First Name, Last Name, Gender, Date Of Birth */}
+            <div className="grid grid-cols-4 gap-4">
               <FormField
                 control={form.control}
                 name="first_name"
@@ -230,7 +262,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                   <FormItem>
                     <FormLabel>First Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input placeholder="Enter first name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -242,25 +274,9 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name *</FormLabel>
+                    <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="date_of_birth"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Birth *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
+                      <Input placeholder="Enter last name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -273,10 +289,10 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gender *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -289,48 +305,276 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="123 Main St, City" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="space-y-3 pt-2 border-t">
-              <h4 className="font-medium">Parent/Guardian Information</h4>
-              
               <FormField
                 control={form.control}
-                name="parent_name"
+                name="date_of_birth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Parent Name</FormLabel>
+                    <FormLabel>Date Of Birth *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Jane Doe" {...field} />
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Row 3: Category, Religion, Caste, Mobile Number, Email */}
+            <div className="grid grid-cols-5 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="General">General</SelectItem>
+                        <SelectItem value="OBC">OBC</SelectItem>
+                        <SelectItem value="SC">SC</SelectItem>
+                        <SelectItem value="ST">ST</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="religion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Religion</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter religion" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="caste"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Caste</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter caste" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="parent_phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mobile Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter mobile" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="parent_email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Row 4: Admission Date, Student Photo, Blood Group, House */}
+            <div className="grid grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="enrollment_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Admission Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="photo"
+                render={({ field: { value, onChange, ...field } }) => (
+                  <FormItem>
+                    <FormLabel>Student Photo (100px X 100px)</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onChange(file);
+                          }}
+                          {...field}
+                          className="text-xs"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="blood_group"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Blood Group</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="A+">A+</SelectItem>
+                        <SelectItem value="A-">A-</SelectItem>
+                        <SelectItem value="B+">B+</SelectItem>
+                        <SelectItem value="B-">B-</SelectItem>
+                        <SelectItem value="O+">O+</SelectItem>
+                        <SelectItem value="O-">O-</SelectItem>
+                        <SelectItem value="AB+">AB+</SelectItem>
+                        <SelectItem value="AB-">AB-</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="house"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>House</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Red">Red</SelectItem>
+                        <SelectItem value="Blue">Blue</SelectItem>
+                        <SelectItem value="Green">Green</SelectItem>
+                        <SelectItem value="Yellow">Yellow</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Row 5: Height, Weight, Measurement Date */}
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="height"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Height</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter height (cm)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter weight (kg)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="measurement_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Measurement Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Medical History */}
+            <FormField
+              control={form.control}
+              name="medical_history"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Medical History</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter medical history details" 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Additional Fields Section */}
+            <div className="space-y-4 pt-2 border-t">
+              <h4 className="font-medium">Additional Information</h4>
+              
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="parent_email"
+                  name="parent_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Parent Email</FormLabel>
+                      <FormLabel>Parent/Guardian Name</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="parent@example.com" {...field} />
+                        <Input placeholder="Enter parent name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -339,12 +583,12 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
 
                 <FormField
                   control={form.control}
-                  name="parent_phone"
+                  name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Parent Phone</FormLabel>
+                      <FormLabel>Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="+1234567890" {...field} />
+                        <Input placeholder="Enter address" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

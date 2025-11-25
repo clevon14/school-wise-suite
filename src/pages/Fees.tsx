@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { AddFeeCategoryDialog } from "@/components/fees/AddFeeCategoryDialog";
 import { AssignFeesDialog } from "@/components/fees/AssignFeesDialog";
 import { FeeAssignmentsList } from "@/components/fees/FeeAssignmentsList";
+import { GenerateBusFeesDialog } from "@/components/fees/GenerateBusFeesDialog";
 
 export default function Fees() {
   const { data: feeStats, isLoading: statsLoading } = useQuery({
@@ -63,6 +64,7 @@ export default function Fees() {
         </div>
         <div className="flex gap-2 flex-wrap">
           <CSVExportButton data={recentPayments || []} type="fees" />
+          <GenerateBusFeesDialog />
           <AssignFeesDialog />
           <AddFeeCategoryDialog />
         </div>

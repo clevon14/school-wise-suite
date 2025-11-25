@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardCheck, Plus } from "lucide-react";
 import { AttendanceMarkingDialog } from "@/components/attendance/AttendanceMarkingDialog";
 import { AttendanceReport } from "@/components/attendance/AttendanceReport";
+import { AttendanceAnalytics } from "@/components/attendance/AttendanceAnalytics";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -106,7 +108,20 @@ export default function Attendance() {
         </Card>
       </div>
 
-      <AttendanceReport />
+      <Tabs defaultValue="report" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="report">Attendance Report</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="report" className="space-y-4">
+          <AttendanceReport />
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="space-y-4">
+          <AttendanceAnalytics />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

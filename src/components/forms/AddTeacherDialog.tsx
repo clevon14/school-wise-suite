@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -43,12 +44,14 @@ const teacherSchema = z.object({
   role: z.string().trim().max(100).optional(),
   hire_date: z.string().optional(),
   address: z.string().trim().max(500).optional(),
+  photo: z.instanceof(File).optional(),
 });
 
 type TeacherFormValues = z.infer<typeof teacherSchema>;
 
 export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const form = useForm<TeacherFormValues>({
@@ -69,6 +72,28 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
 
   const createTeacher = useMutation({
     mutationFn: async (values: TeacherFormValues) => {
+      let photo_url = null;
+
+      // Upload photo if provided
+      if (values.photo) {
+        setUploading(true);
+        const fileExt = values.photo.name.split('.').pop();
+        const fileName = `teachers/${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('photos')
+          .upload(fileName, values.photo);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('photos')
+          .getPublicUrl(fileName);
+        
+        photo_url = publicUrl;
+        setUploading(false);
+      }
+
       const { data, error } = await supabase
         .from("employees")
         .insert([{
@@ -83,6 +108,7 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
           role: values.role || "teacher",
           hire_date: values.hire_date || null,
           address: values.address || null,
+          photo_url,
           status: "active",
         }])
         .select()
@@ -120,6 +146,31 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="photo"
+              render={({ field: { value, onChange, ...field } }) => (
+                <FormItem>
+                  <FormLabel>Photo</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) onChange(file);
+                        }}
+                        {...field}
+                      />
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -312,8 +363,8 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createTeacher.isPending}>
-                {createTeacher.isPending ? "Adding..." : "Add Teacher"}
+              <Button type="submit" disabled={createTeacher.isPending || uploading}>
+                {uploading ? "Uploading..." : createTeacher.isPending ? "Adding..." : "Add Teacher"}
               </Button>
             </div>
           </form>

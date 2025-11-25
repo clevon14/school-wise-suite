@@ -297,6 +297,7 @@ export type Database = {
           id: string
           last_name: string
           phone: string | null
+          photo_url: string | null
           role: string | null
           status: string | null
           updated_at: string | null
@@ -315,6 +316,7 @@ export type Database = {
           id?: string
           last_name: string
           phone?: string | null
+          photo_url?: string | null
           role?: string | null
           status?: string | null
           updated_at?: string | null
@@ -333,6 +335,7 @@ export type Database = {
           id?: string
           last_name?: string
           phone?: string | null
+          photo_url?: string | null
           role?: string | null
           status?: string | null
           updated_at?: string | null
@@ -1040,6 +1043,7 @@ export type Database = {
           parent_email: string | null
           parent_name: string | null
           parent_phone: string | null
+          photo_url: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
@@ -1058,6 +1062,7 @@ export type Database = {
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
+          photo_url?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1076,6 +1081,7 @@ export type Database = {
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
+          photo_url?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null

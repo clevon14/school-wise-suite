@@ -1057,29 +1057,69 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          class_id: string | null
           created_at: string | null
+          email: string | null
           full_name: string | null
           id: string
+          is_active: boolean | null
           phone: string | null
+          role: string | null
+          subjects: string[] | null
           updated_at: string | null
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          class_id?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean | null
           phone?: string | null
+          role?: string | null
+          subjects?: string[] | null
           updated_at?: string | null
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          class_id?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
           phone?: string | null
+          role?: string | null
+          subjects?: string[] | null
           updated_at?: string | null
+          username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "profiles_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "profiles_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_answers: {
         Row: {

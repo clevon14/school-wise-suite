@@ -31,8 +31,12 @@ const menuItems = [
   { title: "Students", url: "/students", icon: GraduationCap },
   { title: "Teachers", url: "/teachers", icon: Users },
   { title: "Classes", url: "/classes", icon: BookOpen },
-  { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
   { title: "Subjects", url: "/subjects", icon: FileText },
+  { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
+  { title: "Timetable", url: "/timetable", icon: Calendar },
+  { title: "Exams", url: "/exams", icon: FileText },
+  { title: "Fees", url: "/fees", icon: DollarSign },
+  { title: "Transport", url: "/transport", icon: Users },
 ];
 
 export function AppSidebar() {

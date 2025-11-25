@@ -180,11 +180,35 @@ export default function Fees() {
         .eq("id", feeAssignmentId);
 
       if (updateError) throw updateError;
+
+      return studentId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["students-for-fees"] });
-      queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] });
-      queryClient.invalidateQueries({ queryKey: ["student-details"] });
+    onSuccess: async (studentId) => {
+      // Refetch all fee-related queries
+      await queryClient.invalidateQueries({ queryKey: ["students-for-fees"] });
+      await queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] });
+      
+      // Refetch the current student's data
+      const { data } = await supabase
+        .from("students")
+        .select(`
+          *,
+          class:classes(name, section),
+          fee_assignments(
+            id,
+            amount,
+            status,
+            due_date,
+            fee_category:fee_categories(name)
+          )
+        `)
+        .eq("id", studentId)
+        .single();
+      
+      if (data) {
+        setSelectedStudentForView(data);
+      }
+      
       toast({
         title: "Success",
         description: "Payment recorded successfully",

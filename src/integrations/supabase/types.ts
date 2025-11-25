@@ -1493,14 +1493,27 @@ export type Database = {
           created_at: string | null
           date_of_birth: string | null
           enrollment_date: string | null
+          father_name: string | null
+          father_occupation: string | null
+          father_phone: string | null
+          father_photo_url: string | null
           first_name: string
           gender: string | null
+          guardian_address: string | null
+          guardian_is: string | null
+          guardian_occupation: string | null
+          guardian_photo_url: string | null
+          guardian_relation: string | null
           height: string | null
           house: string | null
           id: string
           last_name: string
           measurement_date: string | null
           medical_history: string | null
+          mother_name: string | null
+          mother_occupation: string | null
+          mother_phone: string | null
+          mother_photo_url: string | null
           parent_email: string | null
           parent_name: string | null
           parent_phone: string | null
@@ -1523,14 +1536,27 @@ export type Database = {
           created_at?: string | null
           date_of_birth?: string | null
           enrollment_date?: string | null
+          father_name?: string | null
+          father_occupation?: string | null
+          father_phone?: string | null
+          father_photo_url?: string | null
           first_name: string
           gender?: string | null
+          guardian_address?: string | null
+          guardian_is?: string | null
+          guardian_occupation?: string | null
+          guardian_photo_url?: string | null
+          guardian_relation?: string | null
           height?: string | null
           house?: string | null
           id?: string
           last_name: string
           measurement_date?: string | null
           medical_history?: string | null
+          mother_name?: string | null
+          mother_occupation?: string | null
+          mother_phone?: string | null
+          mother_photo_url?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
@@ -1553,14 +1579,27 @@ export type Database = {
           created_at?: string | null
           date_of_birth?: string | null
           enrollment_date?: string | null
+          father_name?: string | null
+          father_occupation?: string | null
+          father_phone?: string | null
+          father_photo_url?: string | null
           first_name?: string
           gender?: string | null
+          guardian_address?: string | null
+          guardian_is?: string | null
+          guardian_occupation?: string | null
+          guardian_photo_url?: string | null
+          guardian_relation?: string | null
           height?: string | null
           house?: string | null
           id?: string
           last_name?: string
           measurement_date?: string | null
           medical_history?: string | null
+          mother_name?: string | null
+          mother_occupation?: string | null
+          mother_phone?: string | null
+          mother_photo_url?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null

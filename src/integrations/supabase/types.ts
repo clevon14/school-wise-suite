@@ -1375,6 +1375,149 @@ export type Database = {
           },
         ]
       }
+      test_results: {
+        Row: {
+          created_at: string | null
+          entered_by: string | null
+          id: string
+          is_absent: boolean | null
+          marks_obtained: number | null
+          remarks: string | null
+          student_id: string
+          test_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entered_by?: string | null
+          id?: string
+          is_absent?: boolean | null
+          marks_obtained?: number | null
+          remarks?: string | null
+          student_id: string
+          test_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entered_by?: string | null
+          id?: string
+          is_absent?: boolean | null
+          marks_obtained?: number | null
+          remarks?: string | null
+          student_id?: string
+          test_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_results_entered_by_fkey"
+            columns: ["entered_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "test_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "test_statistics"
+            referencedColumns: ["test_id"]
+          },
+          {
+            foreignKeyName: "test_results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          academic_year: string
+          class_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          max_marks: number
+          name: string
+          pass_marks: number
+          subject_id: string
+          test_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          academic_year: string
+          class_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          max_marks: number
+          name: string
+          pass_marks: number
+          subject_id: string
+          test_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          academic_year?: string
+          class_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          max_marks?: number
+          name?: string
+          pass_marks?: number
+          subject_id?: string
+          test_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "tests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tests_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       timetable: {
         Row: {
           academic_year: string
@@ -1498,6 +1641,49 @@ export type Database = {
           village: string | null
         }
         Relationships: []
+      }
+      test_statistics: {
+        Row: {
+          absent_count: number | null
+          avg_score: number | null
+          class_id: string | null
+          highest_score: number | null
+          lowest_score: number | null
+          max_marks: number | null
+          median_score: number | null
+          pass_count: number | null
+          pass_marks: number | null
+          pass_percentage: number | null
+          present_count: number | null
+          subject_id: string | null
+          test_date: string | null
+          test_id: string | null
+          test_name: string | null
+          total_students: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "tests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tests_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

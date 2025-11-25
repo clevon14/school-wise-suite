@@ -21,12 +21,27 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Verify user is authenticated and has proper role
+    // Verify authentication
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit (20 uploads per minute)
+    const { data: rateLimitOk } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_endpoint: 'upsert-embeddings',
+      p_max_requests: 20,
+      p_window_minutes: 1,
+    });
+
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

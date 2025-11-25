@@ -13,7 +13,8 @@ import {
   Award,
   LogOut,
   Sparkles,
-  Settings
+  Settings,
+  Shield
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -36,6 +37,7 @@ const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "AI Assistant", url: "/ai-assistant", icon: Sparkles },
   { title: "Fine-Tuning", url: "/admin/fine-tuning", icon: Settings },
+  { title: "Security", url: "/admin/security", icon: Shield },
   { title: "Students", url: "/students", icon: GraduationCap },
   { title: "Teachers", url: "/teachers", icon: Users },
   { title: "Classes", url: "/classes", icon: BookOpen },

@@ -19,22 +19,102 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // SECURITY FIX: Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Initialize Supabase client with anon key for auth check
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: authHeader },
+      },
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Verify user has teacher or admin role
+    const supabaseServiceRole = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { data: userRole, error: roleError } = await supabaseServiceRole
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "teacher"])
+      .single();
+
+    if (roleError || !userRole) {
+      return new Response(
+        JSON.stringify({ error: "Insufficient permissions. Only teachers and admins can send SMS notifications." }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const { studentId, date, status }: AbsenceNotificationRequest = await req.json();
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     // Get student and parent info
-    const { data: student, error: studentError } = await supabase
+    const { data: student, error: studentError } = await supabaseServiceRole
       .from("students")
-      .select("first_name, last_name, parent_name, parent_phone")
+      .select("first_name, last_name, parent_name, parent_phone, class_id")
       .eq("id", studentId)
       .single();
 
     if (studentError || !student) {
       throw new Error("Student not found");
+    }
+
+    // Verify teacher has access to this student's class (unless admin)
+    if (userRole.role === "teacher") {
+      const { data: employee } = await supabaseServiceRole
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (employee) {
+        const { data: classAccess } = await supabaseServiceRole
+          .from("class_subjects")
+          .select("id")
+          .eq("teacher_id", employee.id)
+          .eq("class_id", student.class_id)
+          .single();
+
+        if (!classAccess) {
+          return new Response(
+            JSON.stringify({ error: "You do not have access to this student's class" }),
+            {
+              status: 403,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
+        }
+      }
     }
 
     if (!student.parent_phone) {

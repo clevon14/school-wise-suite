@@ -58,6 +58,8 @@ export function AttendanceMarkingDialog({ children }: { children: React.ReactNod
   const [open, setOpen] = useState(false);
   const [studentAttendances, setStudentAttendances] = useState<Record<string, StudentAttendance>>({});
   const [bulkStatus, setBulkStatus] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [markAllPresent, setMarkAllPresent] = useState<boolean>(false);
   const queryClient = useQueryClient();
 
   const form = useForm<AttendanceFormValues>({
@@ -173,6 +175,24 @@ export function AttendanceMarkingDialog({ children }: { children: React.ReactNod
         .insert(attendanceRecords);
 
       if (insertError) throw insertError;
+
+      // Send SMS notifications for absent students
+      const absentRecords = attendanceRecords.filter(r => r.status === "absent");
+      
+      for (const record of absentRecords) {
+        try {
+          await supabase.functions.invoke("send-absence-sms", {
+            body: {
+              studentId: record.student_id,
+              date: dateStr,
+              status: record.status,
+            },
+          });
+        } catch (smsError) {
+          console.error("Failed to send SMS:", smsError);
+          // Don't fail the whole operation if SMS fails
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
@@ -230,6 +250,30 @@ export function AttendanceMarkingDialog({ children }: { children: React.ReactNod
     setStudentAttendances(newAttendances);
     toast.success(`All students marked as ${bulkStatus}`);
   };
+
+  const handleMarkAllPresentToggle = (checked: boolean) => {
+    setMarkAllPresent(checked);
+    if (checked) {
+      const newAttendances: Record<string, StudentAttendance> = {};
+      students?.forEach((student) => {
+        newAttendances[student.id] = {
+          student_id: student.id,
+          status: "present",
+        };
+      });
+      setStudentAttendances(newAttendances);
+      toast.success("All students marked as present");
+    }
+  };
+
+  // Filter students based on search query
+  const filteredStudents = students?.filter((student) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const fullName = `${student.first_name} ${student.last_name}`.toLowerCase();
+    const admissionNo = student.admission_number.toLowerCase();
+    return fullName.includes(query) || admissionNo.includes(query);
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -346,33 +390,55 @@ export function AttendanceMarkingDialog({ children }: { children: React.ReactNod
 
             {selectedClassId && (
               <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center gap-2">
-                  <Select value={bulkStatus} onValueChange={setBulkStatus}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Bulk action" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="present">Mark all Present</SelectItem>
-                      <SelectItem value="absent">Mark all Absent</SelectItem>
-                      <SelectItem value="late">Mark all Late</SelectItem>
-                      <SelectItem value="excused">Mark all Excused</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={applyBulkStatus}
-                    disabled={!bulkStatus}
-                  >
-                    Apply to All
-                  </Button>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Bulk action" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="present">Mark all Present</SelectItem>
+                        <SelectItem value="absent">Mark all Absent</SelectItem>
+                        <SelectItem value="late">Mark all Late</SelectItem>
+                        <SelectItem value="excused">Mark all Excused</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={applyBulkStatus}
+                      disabled={!bulkStatus}
+                    >
+                      Apply to All
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="mark-all-present" className="text-sm font-medium">
+                      Mark All Present
+                    </label>
+                    <input
+                      id="mark-all-present"
+                      type="checkbox"
+                      checked={markAllPresent}
+                      onChange={(e) => handleMarkAllPresentToggle(e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
                 </div>
+
+                <Input
+                  placeholder="Search by name or admission number..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
 
                 {studentsLoading ? (
                   <p className="text-sm text-muted-foreground">Loading students...</p>
-                ) : students && students.length > 0 ? (
+                ) : filteredStudents && filteredStudents.length > 0 ? (
                   <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {students.map((student) => {
+                    {filteredStudents.map((student) => {
                       const attendance = studentAttendances[student.id];
                       const status = attendance?.status || "present";
 
@@ -416,6 +482,10 @@ export function AttendanceMarkingDialog({ children }: { children: React.ReactNod
                       );
                     })}
                   </div>
+                ) : searchQuery ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No students found matching "{searchQuery}"
+                  </p>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     No students found in this class

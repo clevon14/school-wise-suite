@@ -31,6 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 const studentSchema = z.object({
@@ -70,6 +71,9 @@ const studentSchema = z.object({
   guardian_occupation: z.string().trim().max(100).optional(),
   guardian_photo: z.instanceof(File).optional(),
   guardian_address: z.string().trim().max(500).optional(),
+  // Fees
+  selected_fees: z.array(z.string()).optional(),
+  selected_discounts: z.array(z.string()).optional(),
 });
 
 type StudentFormValues = z.infer<typeof studentSchema>;
@@ -77,6 +81,8 @@ type StudentFormValues = z.infer<typeof studentSchema>;
 export function AddStudentDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [selectedFees, setSelectedFees] = useState<string[]>([]);
+  const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   const { data: classes } = useQuery({
@@ -85,6 +91,18 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from("classes")
         .select("id, name, section")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: feeCategories } = useQuery({
+    queryKey: ["fee-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_categories")
+        .select("*")
         .order("name");
       if (error) throw error;
       return data;
@@ -229,6 +247,24 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) throw error;
+
+      // Create fee assignments for selected fees
+      if (selectedFees.length > 0) {
+        const feeAssignments = selectedFees.map(feeCategoryId => ({
+          student_id: data.id,
+          fee_category_id: feeCategoryId,
+          amount: feeCategories?.find(f => f.id === feeCategoryId)?.amount || 0,
+          due_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+          status: 'pending'
+        }));
+
+        const { error: feeError } = await supabase
+          .from("fee_assignments")
+          .insert(feeAssignments);
+
+        if (feeError) throw feeError;
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -236,6 +272,8 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["students-count"] });
       toast.success("Student added successfully");
       form.reset();
+      setSelectedFees([]);
+      setSelectedDiscounts([]);
       setOpen(false);
     },
     onError: (error: any) => {
@@ -947,6 +985,87 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Fees Details Section */}
+            <div className="space-y-4 pt-4 border-t">
+              <h4 className="font-medium text-lg">Fees Details</h4>
+              
+              <div className="space-y-2">
+                {feeCategories?.map((fee) => (
+                  <div key={fee.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={selectedFees.includes(fee.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedFees([...selectedFees, fee.id]);
+                          } else {
+                            setSelectedFees(selectedFees.filter(id => id !== fee.id));
+                          }
+                        }}
+                      />
+                      <label className="text-sm font-medium cursor-pointer">
+                        {fee.name}
+                      </label>
+                    </div>
+                    <span className="text-sm font-semibold">
+                      ₹{fee.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <h5 className="font-medium mb-2">Fees Discount Details</h5>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Checkbox
+                      checked={selectedDiscounts.includes('sibling-disc')}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedDiscounts([...selectedDiscounts, 'sibling-disc']);
+                        } else {
+                          setSelectedDiscounts(selectedDiscounts.filter(d => d !== 'sibling-disc'));
+                        }
+                      }}
+                    />
+                    <label className="text-sm cursor-pointer">
+                      Sibling Discount - sibling-disc
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Checkbox
+                      checked={selectedDiscounts.includes('handicap-disc')}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedDiscounts([...selectedDiscounts, 'handicap-disc']);
+                        } else {
+                          setSelectedDiscounts(selectedDiscounts.filter(d => d !== 'handicap-disc'));
+                        }
+                      }}
+                    />
+                    <label className="text-sm cursor-pointer">
+                      Handicapped Discount - handicap-disc
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Checkbox
+                      checked={selectedDiscounts.includes('cls-top-disc')}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedDiscounts([...selectedDiscounts, 'cls-top-disc']);
+                        } else {
+                          setSelectedDiscounts(selectedDiscounts.filter(d => d !== 'cls-top-disc'));
+                        }
+                      }}
+                    />
+                    <label className="text-sm cursor-pointer">
+                      Class Topper Discount - cls-top-disc
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

@@ -21,6 +21,8 @@ import { ClassFeeStructureManager } from "@/components/fees/ClassFeeStructureMan
 import { VillageBusFeesManager } from "@/components/fees/VillageBusFeesManager";
 import { StudentSpecificFeesManager } from "@/components/fees/StudentSpecificFeesManager";
 import { MonthlyFeeSummary } from "@/components/fees/MonthlyFeeSummary";
+import { AddBusFeeDialog } from "@/components/fees/AddBusFeeDialog";
+import { AddTuitionFeeDialog } from "@/components/fees/AddTuitionFeeDialog";
 
 export default function Fees() {
   const { data: feeStats, isLoading: statsLoading } = useQuery({
@@ -67,7 +69,9 @@ export default function Fees() {
           <h2 className="text-3xl font-bold tracking-tight">Fee Management</h2>
           <p className="text-muted-foreground">Track payments, generate receipts, and manage fee structure</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <AddTuitionFeeDialog />
+          <AddBusFeeDialog />
           <CSVExportButton data={recentPayments || []} type="fees" />
         </div>
       </div>

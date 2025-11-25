@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Download, Eye, Calendar, TrendingUp } from "lucide-react";
+import { Plus, Download, Eye, Calendar, Edit } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { CreateTestDialog } from "@/components/tests/CreateTestDialog";
+import { EnterMarksDialog } from "@/components/tests/EnterMarksDialog";
 import { exportTestsToCSV } from "@/lib/test-csv-export";
 import { Badge } from "@/components/ui/badge";
 
@@ -19,6 +20,7 @@ export default function Tests() {
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [enterMarksTestId, setEnterMarksTestId] = useState<string | null>(null);
 
   // Fetch classes
   const { data: classes } = useQuery({
@@ -267,8 +269,16 @@ export default function Tests() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setEnterMarksTestId(test.test_id)}
+                          title="Enter Marks"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Link to={`/tests/${test.test_id}`}>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="View Details">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
@@ -292,6 +302,14 @@ export default function Tests() {
         open={createDialogOpen} 
         onOpenChange={setCreateDialogOpen}
       />
+
+      {enterMarksTestId && (
+        <EnterMarksDialog
+          testId={enterMarksTestId}
+          open={!!enterMarksTestId}
+          onOpenChange={(open) => !open && setEnterMarksTestId(null)}
+        />
+      )}
     </div>
   );
 }

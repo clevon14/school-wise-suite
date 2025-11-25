@@ -65,8 +65,7 @@ Deno.serve(async (req) => {
       query, 
       scope = 'school',
       target_id = null,
-      top_k = 5,
-      messages = [],
+      history = [],
       use_fine_tuned = false
     } = await req.json();
 
@@ -105,162 +104,30 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 1: Fetch structured facts based on scope
-    let structuredFacts: any = {};
-    const fieldsReturned: string[] = [];
-
-    if (scope === 'student' && target_id) {
-      const { data: studentFacts, error: factsError } = await supabaseClient
-        .rpc('get_student_facts', { 
-          p_student_id: target_id,
-          p_month_start: null,
-          p_month_end: null
-        });
-
-      if (factsError) {
-        console.error('Error fetching student facts:', factsError);
-      } else {
-        structuredFacts = studentFacts || {};
-        if (structuredFacts.attendance) fieldsReturned.push('attendance');
-        if (structuredFacts.tests) fieldsReturned.push('tests');
-        if (structuredFacts.fees) fieldsReturned.push('fees');
-        if (structuredFacts.name) fieldsReturned.push('profile');
+    // Step 2: Get structured context from rag-context function
+    const { data: contextData, error: contextError } = await supabaseClient.functions.invoke(
+      'rag-context',
+      {
+        body: {
+          query,
+          scope,
+          target_id,
+        },
       }
-    } else if (scope === 'class' && target_id) {
-      const { data: classFacts, error: factsError } = await supabaseClient
-        .rpc('get_class_facts', { 
-          p_class_id: target_id,
-          p_month_start: null,
-          p_month_end: null
-        });
+    );
 
-      if (factsError) {
-        console.error('Error fetching class facts:', factsError);
-      } else {
-        structuredFacts = classFacts || {};
-        fieldsReturned.push('class_summary');
-      }
+    if (contextError) {
+      console.error('Error fetching context:', contextError);
     }
 
-    // Step 2: Generate embedding for query
+    const contextPrompt = contextData?.contextPrompt || SYSTEM_PROMPT;
+
+    // Step 3: Call LLM with streaming
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        input: query,
-        model: 'text-embedding-ada-002',
-      }),
-    });
-
-    if (!embeddingResponse.ok) {
-      console.error('Embedding API error:', embeddingResponse.status);
-      throw new Error(`Embedding API error: ${embeddingResponse.status}`);
-    }
-
-    const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.data[0].embedding;
-
-    // Step 3: Retrieve relevant documents from vector DB
-    const { data: similarDocs, error: searchError } = await supabaseClient.rpc(
-      'match_documents',
-      {
-        query_embedding: queryEmbedding,
-        match_threshold: 0.7,
-        match_count: top_k,
-      }
-    );
-
-    if (searchError) {
-      console.error('Search error:', searchError);
-    }
-
-    // Filter documents by metadata if scope is specified
-    const filteredDocs = similarDocs?.filter((doc: any) => {
-      if (scope === 'class' && target_id && doc.class_id !== target_id) return false;
-      if (scope === 'student' && target_id) {
-        // For student scope, include docs from their class
-        const studentClass = structuredFacts.class || '';
-        if (doc.class_id && !studentClass.includes(doc.class_id)) return false;
-      }
-      return true;
-    }) || [];
-
-    // Step 4: Build LLM prompt with labeled sections
-    let contextPrompt = SYSTEM_PROMPT + '\n\n';
-
-    // Add structured facts
-    if (Object.keys(structuredFacts).length > 0) {
-      contextPrompt += '=== STRUCTURED DATA ===\n\n';
-      
-      if (structuredFacts.name) {
-        contextPrompt += `[PROFILE]\nStudent: ${structuredFacts.name}\n`;
-        contextPrompt += `Admission Number: ${structuredFacts.admission_number}\n`;
-        contextPrompt += `Class: ${structuredFacts.class}\n\n`;
-      }
-
-      if (structuredFacts.attendance) {
-        contextPrompt += `[ATTENDANCE]\nPresent: ${structuredFacts.attendance.present_days} days\n`;
-        contextPrompt += `Absent: ${structuredFacts.attendance.absent_days} days\n`;
-        contextPrompt += `Percentage: ${structuredFacts.attendance.percentage}%\n\n`;
-      }
-
-      if (structuredFacts.tests && structuredFacts.tests.length > 0) {
-        contextPrompt += `[TESTS]\nRecent test results:\n`;
-        structuredFacts.tests.forEach((test: any, idx: number) => {
-          contextPrompt += `${idx + 1}. ${test.test_name}: ${test.marks_obtained}/${test.max_marks} (${test.percentage}%) on ${test.date}\n`;
-        });
-        contextPrompt += '\n';
-      }
-
-      if (structuredFacts.fees) {
-        contextPrompt += `[FEES]\nDue Amount: ₹${structuredFacts.fees.due_amount}\n`;
-        contextPrompt += `Paid Amount: ₹${structuredFacts.fees.paid_amount}\n`;
-        contextPrompt += `Pending Count: ${structuredFacts.fees.pending_count}\n\n`;
-      }
-
-      if (structuredFacts.class_name) {
-        contextPrompt += `[CLASS SUMMARY]\nClass: ${structuredFacts.class_name}\n`;
-        contextPrompt += `Total Students: ${structuredFacts.total_students}\n`;
-        if (structuredFacts.attendance) {
-          contextPrompt += `Average Attendance: ${structuredFacts.attendance.average_percentage}%\n`;
-        }
-        if (structuredFacts.performance) {
-          contextPrompt += `Average Score: ${structuredFacts.performance.average_score_pct}%\n`;
-        }
-        if (structuredFacts.fees) {
-          contextPrompt += `Fee Collection: ${structuredFacts.fees.collection_percentage}%\n`;
-        }
-        contextPrompt += `At-Risk Students: ${structuredFacts.at_risk_count}\n\n`;
-      }
-
-      if (structuredFacts.at_risk) {
-        contextPrompt += `⚠️ ALERT: This student is flagged as at-risk.\n\n`;
-      }
-    }
-
-    // Add retrieved documents
-    if (filteredDocs.length > 0) {
-      contextPrompt += '=== RELEVANT DOCUMENTS ===\n\n';
-      filteredDocs.forEach((doc: any, idx: number) => {
-        contextPrompt += `Document ${idx + 1}: ${doc.title}\n`;
-        contextPrompt += `Type: ${doc.document_type}\n`;
-        contextPrompt += `Content: ${doc.content.substring(0, 500)}...\n\n`;
-      });
-    } else {
-      contextPrompt += '=== RELEVANT DOCUMENTS ===\nNo relevant documents found.\n\n';
-    }
-
-    contextPrompt += '=== USER QUERY ===\n';
-
-    // Step 5: Call LLM with streaming
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -271,7 +138,7 @@ Deno.serve(async (req) => {
         model: modelToUse,
         messages: [
           { role: 'system', content: contextPrompt },
-          ...messages,
+          ...history,
           { role: 'user', content: query }
         ],
         stream: true,
@@ -298,13 +165,9 @@ Deno.serve(async (req) => {
 
     // Check for suspicious patterns
     const isSuspicious = 
-      fieldsReturned.length > 5 || 
-      filteredDocs.length > 8 ||
       (userRole === 'parent' && scope === 'class');
 
     const securityFlags: string[] = [];
-    if (fieldsReturned.length > 5) securityFlags.push('high_field_count');
-    if (filteredDocs.length > 8) securityFlags.push('high_doc_retrieval');
     if (userRole === 'parent' && scope === 'class') securityFlags.push('unauthorized_scope_attempt');
 
     // Log the query with audit trail
@@ -319,8 +182,6 @@ Deno.serve(async (req) => {
         query: query.substring(0, 200),
         scope,
         role: userRole,
-        fields_returned: fieldsReturned,
-        docs_retrieved: filteredDocs.length,
       },
     });
 

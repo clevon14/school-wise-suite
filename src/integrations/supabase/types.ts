@@ -495,60 +495,144 @@ export type Database = {
       employees: {
         Row: {
           address: string | null
+          bank_account_number: string | null
+          bank_account_title: string | null
+          bank_branch_name: string | null
+          bank_name: string | null
+          basic_salary: number | null
+          casual_leave: number | null
+          contract_type: string | null
           created_at: string | null
           date_of_birth: string | null
           department: string | null
+          designation: string | null
           email: string
+          emergency_contact_number: string | null
           employee_number: string
+          epf_number: string | null
+          father_name: string | null
           first_name: string
           gender: string | null
           hire_date: string | null
           id: string
+          ifsc_code: string | null
+          joining_letter_url: string | null
           last_name: string
+          marital_status: string | null
+          maternity_leave: number | null
+          medical_leave: number | null
+          mother_name: string | null
+          note: string | null
+          other_documents_url: string | null
+          pan_number: string | null
+          permanent_address: string | null
           phone: string | null
           photo_url: string | null
+          qualification: string | null
+          resignation_letter_url: string | null
+          resume_url: string | null
           role: string | null
+          sick_leave: number | null
           status: string | null
           updated_at: string | null
           user_id: string | null
+          work_experience: string | null
+          work_location: string | null
+          work_shift: string | null
         }
         Insert: {
           address?: string | null
+          bank_account_number?: string | null
+          bank_account_title?: string | null
+          bank_branch_name?: string | null
+          bank_name?: string | null
+          basic_salary?: number | null
+          casual_leave?: number | null
+          contract_type?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           department?: string | null
+          designation?: string | null
           email: string
+          emergency_contact_number?: string | null
           employee_number: string
+          epf_number?: string | null
+          father_name?: string | null
           first_name: string
           gender?: string | null
           hire_date?: string | null
           id?: string
+          ifsc_code?: string | null
+          joining_letter_url?: string | null
           last_name: string
+          marital_status?: string | null
+          maternity_leave?: number | null
+          medical_leave?: number | null
+          mother_name?: string | null
+          note?: string | null
+          other_documents_url?: string | null
+          pan_number?: string | null
+          permanent_address?: string | null
           phone?: string | null
           photo_url?: string | null
+          qualification?: string | null
+          resignation_letter_url?: string | null
+          resume_url?: string | null
           role?: string | null
+          sick_leave?: number | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          work_experience?: string | null
+          work_location?: string | null
+          work_shift?: string | null
         }
         Update: {
           address?: string | null
+          bank_account_number?: string | null
+          bank_account_title?: string | null
+          bank_branch_name?: string | null
+          bank_name?: string | null
+          basic_salary?: number | null
+          casual_leave?: number | null
+          contract_type?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           department?: string | null
+          designation?: string | null
           email?: string
+          emergency_contact_number?: string | null
           employee_number?: string
+          epf_number?: string | null
+          father_name?: string | null
           first_name?: string
           gender?: string | null
           hire_date?: string | null
           id?: string
+          ifsc_code?: string | null
+          joining_letter_url?: string | null
           last_name?: string
+          marital_status?: string | null
+          maternity_leave?: number | null
+          medical_leave?: number | null
+          mother_name?: string | null
+          note?: string | null
+          other_documents_url?: string | null
+          pan_number?: string | null
+          permanent_address?: string | null
           phone?: string | null
           photo_url?: string | null
+          qualification?: string | null
+          resignation_letter_url?: string | null
+          resume_url?: string | null
           role?: string | null
+          sick_leave?: number | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          work_experience?: string | null
+          work_location?: string | null
+          work_shift?: string | null
         }
         Relationships: []
       }

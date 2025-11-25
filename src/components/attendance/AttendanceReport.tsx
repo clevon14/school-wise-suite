@@ -143,12 +143,12 @@ export function AttendanceReport() {
             </PopoverContent>
           </Popover>
 
-          <Select value={selectedClass} onValueChange={setSelectedClass}>
+          <Select value={selectedClass || "all"} onValueChange={(value) => setSelectedClass(value === "all" ? "" : value)}>
             <SelectTrigger className="w-[240px]">
               <SelectValue placeholder="All classes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All classes</SelectItem>
+              <SelectItem value="all">All classes</SelectItem>
               {classes?.map((cls) => (
                 <SelectItem key={cls.id} value={cls.id}>
                   {cls.name} {cls.section || ""}

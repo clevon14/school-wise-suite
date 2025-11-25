@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardCheck, Plus } from "lucide-react";
+import { ClipboardCheck, Plus, Upload } from "lucide-react";
 import { AttendanceMarkingDialog } from "@/components/attendance/AttendanceMarkingDialog";
 import { AttendanceReport } from "@/components/attendance/AttendanceReport";
 import { AttendanceAnalytics } from "@/components/attendance/AttendanceAnalytics";
+import { CSVAttendanceImport } from "@/components/attendance/CSVAttendanceImport";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -35,12 +36,20 @@ export default function Attendance() {
           <h2 className="text-3xl font-bold tracking-tight">Attendance</h2>
           <p className="text-muted-foreground">Track daily attendance for students</p>
         </div>
-        <AttendanceMarkingDialog>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Mark Attendance
-          </Button>
-        </AttendanceMarkingDialog>
+        <div className="flex gap-2">
+          <CSVAttendanceImport>
+            <Button variant="outline">
+              <Upload className="h-4 w-4 mr-2" />
+              Import CSV
+            </Button>
+          </CSVAttendanceImport>
+          <AttendanceMarkingDialog>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Mark Attendance
+            </Button>
+          </AttendanceMarkingDialog>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">

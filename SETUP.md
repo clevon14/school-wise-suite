@@ -1,4 +1,4 @@
-# SchoolCare-AI Setup Guide
+# Holy Cross School-AI Setup Guide
 
 Full-stack school management system with AI-powered RAG assistant, built with React + Supabase + Vector DB.
 
@@ -91,7 +91,7 @@ b) **Structured Facts Retrieval**:
 c) **Vector Search**: Retrieves top_k similar documents filtered by scope metadata
 
 d) **LLM Prompt Construction**:
-   - System prompt: "You are SchoolCare Assistant. Always be accurate, concise (<=150 words)..."
+   - System prompt: "You are Holy Cross School Assistant. Always be accurate, concise (<=150 words)..."
    - Structured facts with labeled sections
    - Retrieved documents as context
    - User query
@@ -243,10 +243,10 @@ Log user actions
 ## System Prompt
 
 ```
-You are SchoolCare Assistant. Always be accurate, concise (<=150 words), and helpful. 
+You are Holy Cross School Assistant. Always be accurate, concise (<=150 words), and helpful. 
 Cite data sources with tags [ATTENDANCE], [TESTS], [FEES], [PROFILE]. 
 Never invent numeric facts—if data is missing reply 'I don't have enough data' and 
-indicate what to check. Mask PII unless the user role allows it. 
+indicate what to check. Mask PII unless the user role allows it.
 If student is at-risk, include one recommended action.
 ```
 

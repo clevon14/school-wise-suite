@@ -146,7 +146,7 @@ export default function AdminFineTuning() {
           const anonymized = await anonymizeExample(ex);
           return JSON.stringify({
             messages: [
-              { role: "system", content: "You are SchoolCare Assistant. Always be accurate, concise, and helpful." },
+              { role: "system", content: "You are Holy Cross School Assistant. Always be accurate, concise, and helpful." },
               { role: "user", content: anonymized?.prompt || ex.prompt },
               { role: "assistant", content: anonymized?.completion || ex.completion },
             ],
@@ -159,7 +159,7 @@ export default function AdminFineTuning() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `schoolcare-finetune-${new Date().toISOString().split("T")[0]}.jsonl`;
+      a.download = `holycrossschool-finetune-${new Date().toISOString().split("T")[0]}.jsonl`;
       a.click();
       URL.revokeObjectURL(url);
 

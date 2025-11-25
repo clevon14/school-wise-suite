@@ -39,6 +39,7 @@ const menuItems = [
   { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
   { title: "Timetable", url: "/timetable", icon: Calendar },
   { title: "Exams", url: "/exams", icon: FileText },
+  { title: "Tests", url: "/tests", icon: ClipboardCheck },
   { title: "Report Cards", url: "/report-cards", icon: Award },
   { title: "Fees", url: "/fees", icon: DollarSign },
   { title: "Transport", url: "/transport", icon: Bus },

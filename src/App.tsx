@@ -16,6 +16,8 @@ import Subjects from "./pages/Subjects";
 import Attendance from "./pages/Attendance";
 import Fees from "./pages/Fees";
 import Exams from "./pages/Exams";
+import Tests from "./pages/Tests";
+import TestDetails from "./pages/TestDetails";
 import Timetable from "./pages/Timetable";
 import Transport from "./pages/Transport";
 import ParentPortal from "./pages/ParentPortal";
@@ -140,6 +142,26 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Exams />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tests"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Tests />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tests/:testId"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <TestDetails />
                 </AppLayout>
               </ProtectedRoute>
             }

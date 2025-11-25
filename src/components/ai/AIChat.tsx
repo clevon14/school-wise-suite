@@ -53,6 +53,8 @@ export function AIChat() {
         },
         body: JSON.stringify({
           query: input,
+          scope: "school", // Can be changed to "student" or "class" with target_id
+          top_k: 5,
           messages: messages.map(m => ({ role: m.role, content: m.content })),
         }),
       });

@@ -82,6 +82,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFees, setSelectedFees] = useState<string[]>([]);
+  const [feeAmounts, setFeeAmounts] = useState<Record<string, number>>({});
   const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
@@ -253,7 +254,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
         const feeAssignments = selectedFees.map(feeCategoryId => ({
           student_id: data.id,
           fee_category_id: feeCategoryId,
-          amount: feeCategories?.find(f => f.id === feeCategoryId)?.amount || 0,
+          amount: feeAmounts[feeCategoryId] || feeCategories?.find(f => f.id === feeCategoryId)?.amount || 0,
           due_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
           status: 'pending'
         }));
@@ -273,6 +274,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
       toast.success("Student added successfully");
       form.reset();
       setSelectedFees([]);
+      setFeeAmounts({});
       setSelectedDiscounts([]);
       setOpen(false);
     },
@@ -993,25 +995,38 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
               
               <div className="space-y-2">
                 {feeCategories?.map((fee) => (
-                  <div key={fee.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={selectedFees.includes(fee.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedFees([...selectedFees, fee.id]);
-                          } else {
-                            setSelectedFees(selectedFees.filter(id => id !== fee.id));
-                          }
+                  <div key={fee.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Checkbox
+                      checked={selectedFees.includes(fee.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedFees([...selectedFees, fee.id]);
+                          setFeeAmounts({...feeAmounts, [fee.id]: fee.amount});
+                        } else {
+                          setSelectedFees(selectedFees.filter(id => id !== fee.id));
+                          const newAmounts = {...feeAmounts};
+                          delete newAmounts[fee.id];
+                          setFeeAmounts(newAmounts);
+                        }
+                      }}
+                    />
+                    <label className="text-sm font-medium cursor-pointer flex-1">
+                      {fee.name}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">₹</span>
+                      <Input
+                        type="number"
+                        placeholder="Amount"
+                        value={feeAmounts[fee.id] || fee.amount}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setFeeAmounts({...feeAmounts, [fee.id]: value});
                         }}
+                        disabled={!selectedFees.includes(fee.id)}
+                        className="w-32 h-8 text-sm"
                       />
-                      <label className="text-sm font-medium cursor-pointer">
-                        {fee.name}
-                      </label>
                     </div>
-                    <span className="text-sm font-semibold">
-                      ₹{fee.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </span>
                   </div>
                 ))}
               </div>

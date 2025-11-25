@@ -98,23 +98,93 @@ d) **LLM Prompt Construction**:
 
 e) **Response**: Streams AI answer with cited sources
 
-**Response Format**:
-```
-Streaming text/event-stream with:
-- Answer citing [ATTENDANCE], [TESTS], [FEES] tags
-- At-risk alerts with recommended actions
-```
+### 3. CSV Export (`/functions/v1/export-csv`)
 
-**Audit Logging**: Every query logged with:
+**Endpoint**: POST `/functions/v1/export-csv`
+
+**Supported Scopes**:
+
+#### Test Results Export
 ```json
 {
-  "user_id": "uuid",
-  "action": "ai_query",
-  "scope": "student",
-  "fields_returned": ["attendance", "tests", "fees"],
-  "docs_retrieved": 3
+  "scope": "test",
+  "id": "test-uuid"
 }
 ```
+**Columns**: Student Name, Admission No, Class, Test Name, Subject, Date, Max Marks, Marks Obtained, Percent, Grade, Remark, Present
+
+#### Class Summary Export
+```json
+{
+  "scope": "class",
+  "id": "class-uuid"
+}
+```
+**Columns**: Student Name, Admission No, Attendance %, Avg Marks (Last 3), Tuition Due, Bus Due, Total Due, At Risk
+
+#### Student Report Export
+```json
+{
+  "scope": "student",
+  "id": "student-uuid",
+  "filters": {
+    "month_start": "2024-01-01",
+    "month_end": "2024-12-31"
+  }
+}
+```
+**Sections**:
+- Student profile (name, admission number, class)
+- Attendance summary with daily records
+- Test results with scores and percentages
+- Fee details with payment status
+
+**RBAC**: Parents can only export their own student data
+
+#### Monthly Summary Export
+```json
+{
+  "scope": "month_summary",
+  "filters": {
+    "month": 11,
+    "year": 2024
+  }
+}
+```
+**Columns**: Student Name, Admission No, Class, Attendance %, Tests Taken, Avg Score %, Fees Due, Fees Paid, At Risk
+
+**RBAC**: Admin and teacher only
+
+#### Attendance Export
+```json
+{
+  "scope": "attendance",
+  "filters": {
+    "class_id": "class-uuid",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31"
+  }
+}
+```
+**Columns**: Date, Student Name, Admission No, Class, Status, Remarks
+
+## UI Export Integration
+
+### Test Details Page
+- Export button in header → downloads complete test results CSV
+- Includes all students with marks, percentages, grades, and attendance status
+
+### Students Page
+- Export button (download icon) per student row → downloads comprehensive student report
+- Includes attendance history, test results, and fee details
+
+### Classes Page
+- Export button per class row → downloads class summary with all student metrics
+- Shows attendance percentages, test averages, fee status, and at-risk indicators
+
+### AI Assistant
+- "Export Report" button in header → downloads current month's summary
+- One-click access to school-wide monthly reports
 
 ## SQL Views & Functions
 
@@ -141,60 +211,34 @@ Aggregates per class:
 
 ### `/functions/v1/rag-query` (Auth required)
 AI assistant with RAG - queries with role-based structured facts
-```bash
-POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/rag-query
-Body: { 
-  "query": "How is student X performing?",
-  "scope": "student",
-  "target_id": "student-uuid",
-  "top_k": 5
-}
-```
 
 ### `/functions/v1/upsert-embeddings` (Admin/Teacher only)
 Upload and vectorize documents
-```bash
-POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/upsert-embeddings
-Body: { 
-  "title": "Math Notes",
-  "content": "...",
-  "type": "note",
-  "metadata": { "class_id": "uuid" }
-}
-```
 
-### `/functions/v1/export-csv` (Auth required)
-Export test results or attendance
-```bash
-POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/export-csv
-Body: { "type": "test_results", "test_id": "uuid" }
-```
+### `/functions/v1/export-csv` (Auth required, RBAC enforced)
+Export data to CSV with multiple scope options
+- Streams CSV directly to client
+- Enforces role-based access controls
+- Logs all exports in audit trail
 
 ### `/functions/v1/audit-log` (Auth required)
 Log user actions
-```bash
-POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/audit-log
-Body: { 
-  "action": "view_report",
-  "resource_type": "test",
-  "resource_id": "uuid"
-}
-```
 
 ## User Roles & RBAC
 
-- **admin**: Full access to all features and data
-- **teacher**: Manage classes, tests, upload documents, query students in their classes
-- **parent**: View only their own child's data, restricted RAG queries
+- **admin**: Full access to all features and data, can export all scopes
+- **teacher**: Manage classes, tests, upload documents, query students in their classes, export class/test data
+- **parent**: View only their own child's data, can export only their student's report
 
-### RBAC in RAG:
-- Parents: `scope=student` only for their child, auto-enforced
-- Teachers: Access students in their classes
-- Admins: Unrestricted access
+### RBAC in CSV Export:
+- Parents: Only `scope=student` for their child
+- Teachers: Access to their classes and tests
+- Admins: Unrestricted access to all export scopes
 
-### PII Masking:
+### PII Protection:
 - System prompt instructs AI to mask PII unless role permits
-- Only necessary fields returned based on role
+- Export endpoints verify user permissions before returning data
+- All exports logged with user ID and scope
 
 ## System Prompt
 
@@ -219,8 +263,17 @@ If student is at-risk, include one recommended action.
 ✅ **Document indexing with embeddings**
 ✅ **Vector similarity search**
 ✅ **Role-based access control (RBAC)**
+✅ **CSV export with multiple scopes**
+  - Test results with detailed columns
+  - Class summaries with student metrics
+  - Individual student comprehensive reports
+  - Monthly summaries across school
+  - Attendance records by class/date range
+✅ **UI-integrated export buttons**
+  - One-click exports from relevant pages
+  - Automatic file naming with timestamps
+  - Toast notifications for user feedback
 ✅ **Audit logging with field tracking**
-✅ CSV export
 
 ## Development
 
@@ -229,43 +282,36 @@ npm install
 npm run dev
 ```
 
-## Testing RAG Pipeline
+## Testing CSV Export
 
-1. **Upload a document** (as admin/teacher):
+### From UI:
+1. **Test Details**: Click "Export CSV" button in header
+2. **Students**: Click download icon on any student row
+3. **Classes**: Click download icon on any class row
+4. **AI Assistant**: Click "Export Report" button in header
+
+### Via API:
 ```bash
-curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/upsert-embeddings \
+# Export test results
+curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/export-csv \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "title": "Math Chapter 1 Notes",
-    "content": "Algebra basics: equations, variables...",
-    "type": "note",
-    "metadata": {"class_id": "class-uuid"}
-  }'
-```
+  -d '{"scope": "test", "id": "test-uuid"}' \
+  --output test_results.csv
 
-2. **Query the AI assistant**:
-```bash
-curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/rag-query \
+# Export student report
+curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/export-csv \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "query": "Explain algebra basics",
-    "scope": "school",
-    "top_k": 3
-  }'
-```
+  -d '{"scope": "student", "id": "student-uuid"}' \
+  --output student_report.csv
 
-3. **Query with student facts**:
-```bash
-curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/rag-query \
+# Export monthly summary
+curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/export-csv \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "query": "How is this student doing?",
-    "scope": "student",
-    "target_id": "student-uuid"
-  }'
+  -d '{"scope": "month_summary", "filters": {"month": 11, "year": 2024}}' \
+  --output monthly_summary.csv
 ```
 
 ## Security Notes
@@ -276,9 +322,10 @@ curl -X POST https://bwzlgevdcplryjygfsdt.supabase.co/functions/v1/rag-query \
 
 ✅ All tables have RLS enabled with role-based policies
 ✅ RAG queries enforce RBAC at function level
+✅ CSV exports enforce role-based permissions
 ✅ Parent access restricted to own student data
 ✅ PII masked by AI based on user role
-✅ All queries audited with field tracking
+✅ All queries and exports audited with field tracking
 
 ## Links
 

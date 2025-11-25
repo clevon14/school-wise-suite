@@ -11,6 +11,7 @@ import { ArrowLeft, Download, TrendingUp, TrendingDown, AlertTriangle } from "lu
 import { format } from "date-fns";
 import { calculateGrade, calculatePercentage } from "@/lib/grade-calculator";
 import { exportTestResultsToCSV } from "@/lib/test-csv-export";
+import { exportToCSV } from "@/lib/csv-export-client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -108,9 +109,16 @@ export default function TestDetails() {
     updateResultMutation.mutate({ resultId, marks, isAbsent });
   };
 
-  const handleExportCSV = () => {
-    if (test && results) {
-      exportTestResultsToCSV(test, results);
+  const handleExportCSV = async () => {
+    try {
+      await exportToCSV({
+        scope: 'test',
+        id: testId,
+      });
+      toast.success("Test results exported successfully");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export test results");
     }
   };
 

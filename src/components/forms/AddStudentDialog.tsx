@@ -56,6 +56,20 @@ const studentSchema = z.object({
   parent_name: z.string().trim().max(200).optional(),
   address: z.string().trim().max(500).optional(),
   photo: z.instanceof(File).optional(),
+  // Parent/Guardian details
+  father_name: z.string().trim().max(200).optional(),
+  father_phone: z.string().trim().max(20).optional(),
+  father_occupation: z.string().trim().max(100).optional(),
+  father_photo: z.instanceof(File).optional(),
+  mother_name: z.string().trim().max(200).optional(),
+  mother_phone: z.string().trim().max(20).optional(),
+  mother_occupation: z.string().trim().max(100).optional(),
+  mother_photo: z.instanceof(File).optional(),
+  guardian_is: z.enum(["father", "mother", "other"]).optional(),
+  guardian_relation: z.string().trim().max(100).optional(),
+  guardian_occupation: z.string().trim().max(100).optional(),
+  guardian_photo: z.instanceof(File).optional(),
+  guardian_address: z.string().trim().max(500).optional(),
 });
 
 type StudentFormValues = z.infer<typeof studentSchema>;
@@ -101,14 +115,27 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
       medical_history: "",
       parent_name: "",
       address: "",
+      father_name: "",
+      father_phone: "",
+      father_occupation: "",
+      mother_name: "",
+      mother_phone: "",
+      mother_occupation: "",
+      guardian_is: undefined,
+      guardian_relation: "",
+      guardian_occupation: "",
+      guardian_address: "",
     },
   });
 
   const createStudent = useMutation({
     mutationFn: async (values: StudentFormValues) => {
       let photo_url = null;
+      let father_photo_url = null;
+      let mother_photo_url = null;
+      let guardian_photo_url = null;
 
-      // Upload photo if provided
+      // Upload student photo if provided
       if (values.photo) {
         setUploading(true);
         const fileExt = values.photo.name.split('.').pop();
@@ -126,6 +153,36 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
         
         photo_url = publicUrl;
         setUploading(false);
+      }
+
+      // Upload father photo if provided
+      if (values.father_photo) {
+        const fileExt = values.father_photo.name.split('.').pop();
+        const fileName = `parents/father-${Date.now()}-${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('photos').upload(fileName, values.father_photo);
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
+        father_photo_url = publicUrl;
+      }
+
+      // Upload mother photo if provided
+      if (values.mother_photo) {
+        const fileExt = values.mother_photo.name.split('.').pop();
+        const fileName = `parents/mother-${Date.now()}-${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('photos').upload(fileName, values.mother_photo);
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
+        mother_photo_url = publicUrl;
+      }
+
+      // Upload guardian photo if provided
+      if (values.guardian_photo) {
+        const fileExt = values.guardian_photo.name.split('.').pop();
+        const fileName = `parents/guardian-${Date.now()}-${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('photos').upload(fileName, values.guardian_photo);
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
+        guardian_photo_url = publicUrl;
       }
 
       const { data, error } = await supabase
@@ -153,6 +210,19 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
           parent_name: values.parent_name || null,
           address: values.address || null,
           photo_url,
+          father_name: values.father_name || null,
+          father_phone: values.father_phone || null,
+          father_occupation: values.father_occupation || null,
+          father_photo_url,
+          mother_name: values.mother_name || null,
+          mother_phone: values.mother_phone || null,
+          mother_occupation: values.mother_occupation || null,
+          mother_photo_url,
+          guardian_is: values.guardian_is || null,
+          guardian_relation: values.guardian_relation || null,
+          guardian_occupation: values.guardian_occupation || null,
+          guardian_photo_url,
+          guardian_address: values.guardian_address || null,
           status: "active",
         }])
         .select()
@@ -562,19 +632,20 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
               )}
             />
 
-            {/* Additional Fields Section */}
-            <div className="space-y-4 pt-2 border-t">
-              <h4 className="font-medium">Additional Information</h4>
+            {/* Parent Guardian Detail Section */}
+            <div className="space-y-4 pt-4 border-t">
+              <h4 className="font-medium text-lg">Parent Guardian Detail</h4>
               
-              <div className="grid grid-cols-2 gap-4">
+              {/* Father Details */}
+              <div className="grid grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
-                  name="parent_name"
+                  name="father_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Parent/Guardian Name</FormLabel>
+                      <FormLabel>Father Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter parent name" {...field} />
+                        <Input placeholder="Enter father name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -583,10 +654,272 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
 
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="father_phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Father Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter phone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="father_occupation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Father Occupation</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter occupation" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="father_photo"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Father Photo (100px X 100px)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onChange(file);
+                          }}
+                          {...field}
+                          className="text-xs"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Mother Details */}
+              <div className="grid grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="mother_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mother Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter mother name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="mother_phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mother Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter phone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="mother_occupation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mother Occupation</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter occupation" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="mother_photo"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Mother Photo (100px X 100px)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onChange(file);
+                          }}
+                          {...field}
+                          className="text-xs"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Guardian Details */}
+              <FormField
+                control={form.control}
+                name="guardian_is"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>If Guardian Is *</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="father"
+                            checked={field.value === "father"}
+                            onChange={() => field.onChange("father")}
+                            className="w-4 h-4"
+                          />
+                          <span>Father</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="mother"
+                            checked={field.value === "mother"}
+                            onChange={() => field.onChange("mother")}
+                            className="w-4 h-4"
+                          />
+                          <span>Mother</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="other"
+                            checked={field.value === "other"}
+                            onChange={() => field.onChange("other")}
+                            className="w-4 h-4"
+                          />
+                          <span>Other</span>
+                        </label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="parent_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter guardian name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="guardian_relation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Relation</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter relation" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="parent_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Enter email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="guardian_photo"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Photo (100px X 100px)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onChange(file);
+                          }}
+                          {...field}
+                          className="text-xs"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="parent_phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Phone *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter phone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="guardian_occupation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Occupation</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter occupation" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="guardian_address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Guardian Address</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter address" {...field} />
                       </FormControl>
@@ -595,6 +928,25 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
                   )}
                 />
               </div>
+            </div>
+
+            {/* Additional Fields Section */}
+            <div className="space-y-4 pt-2 border-t">
+              <h4 className="font-medium">Student Address</h4>
+              
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

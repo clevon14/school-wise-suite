@@ -125,38 +125,31 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
     try {
       const email = `${formData.username.toLowerCase()}@school.com`;
 
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
+      // Get the current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("You must be logged in to create teachers");
+      }
+
+      // Call edge function to create teacher (doesn't log out current user)
+      const response = await supabase.functions.invoke("create-teacher", {
+        body: {
+          email,
+          password: formData.password,
+          fullName: formData.fullName,
+          username: formData.username.toLowerCase(),
+          classId: formData.classId || null,
+          subjects: formData.subjects.length > 0 ? formData.subjects : null,
         },
       });
 
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Failed to create user");
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to create teacher");
       }
 
-      // Update profile with teacher details
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: formData.fullName,
-          username: formData.username.toLowerCase(),
-          email,
-          role: "teacher",
-          class_id: formData.classId || null,
-          subjects: formData.subjects.length > 0 ? formData.subjects : null,
-          is_active: true,
-        })
-        .eq("id", authData.user.id);
-
-      if (profileError) throw profileError;
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
       toast({
         title: "✓ Teacher Account Created",

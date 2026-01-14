@@ -184,9 +184,14 @@ export default function Fees() {
       return studentId;
     },
     onSuccess: async (studentId) => {
-      // Refetch all fee-related queries
-      await queryClient.invalidateQueries({ queryKey: ["students-for-fees"] });
-      await queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] });
+      // Invalidate all fee-related queries including Dashboard queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["students-for-fees"] }),
+        queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] }),
+        queryClient.invalidateQueries({ queryKey: ["fees-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["monthly-fees-chart"] }),
+        queryClient.invalidateQueries({ queryKey: ["income-breakdown"] }),
+      ]);
       
       // Refetch the current student's data
       const { data } = await supabase
@@ -261,9 +266,15 @@ export default function Fees() {
 
       await Promise.all(updates);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["students-for-fees"] });
-      queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] });
+    onSuccess: async () => {
+      // Invalidate all fee-related queries including Dashboard queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["students-for-fees"] }),
+        queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] }),
+        queryClient.invalidateQueries({ queryKey: ["fees-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["monthly-fees-chart"] }),
+        queryClient.invalidateQueries({ queryKey: ["income-breakdown"] }),
+      ]);
       toast({
         title: "Success",
         description: "Fees collected successfully",

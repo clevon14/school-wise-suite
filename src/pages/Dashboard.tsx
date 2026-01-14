@@ -57,6 +57,7 @@ export default function Dashboard() {
       
       return { pending, paid, partial, totalDue: data?.filter(f => f.status === "pending").length || 0 };
     },
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const { data: monthlyFees } = useQuery({
@@ -84,27 +85,37 @@ export default function Dashboard() {
         collection: grouped[i + 1] || 0,
       }));
     },
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const { data: incomeBreakdown } = useQuery({
     queryKey: ["income-breakdown"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("fee_categories")
-        .select("name, amount");
+      // Get actual payments with fee categories
+      const { data: payments } = await supabase
+        .from("payments")
+        .select(`
+          amount,
+          fee_assignment:fee_assignments(
+            fee_category:fee_categories(name)
+          )
+        `);
       
-      const breakdown = data?.reduce((acc: any[], cat) => {
-        const existing = acc.find(item => item.name === cat.name);
+      // Group by fee category
+      const breakdown = payments?.reduce((acc: any[], payment) => {
+        const categoryName = payment.fee_assignment?.fee_category?.name || "Other";
+        const existing = acc.find(item => item.name === categoryName);
         if (existing) {
-          existing.value += cat.amount;
+          existing.value += payment.amount;
         } else {
-          acc.push({ name: cat.name, value: cat.amount });
+          acc.push({ name: categoryName, value: payment.amount });
         }
         return acc;
       }, []) || [];
       
       return breakdown;
     },
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const quickStats = [

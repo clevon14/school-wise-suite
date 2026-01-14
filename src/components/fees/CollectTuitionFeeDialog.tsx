@@ -78,22 +78,47 @@ export function CollectTuitionFeeDialog() {
 
   const updatePayments = useMutation({
     mutationFn: async () => {
-      const updates = Object.entries(paidStatus).map(([id, isPaid]) => ({
-        id,
-        status: isPaid ? "paid" : "pending",
-      }));
-
-      for (const update of updates) {
+      for (const student of students || []) {
+        const feeAssignment = student.fee_assignments?.[0];
+        if (!feeAssignment) continue;
+        
+        const isPaid = paidStatus[feeAssignment.id];
+        const wasPaid = feeAssignment.status === "paid";
+        
+        // If marking as paid and wasn't already paid, create payment record
+        if (isPaid && !wasPaid) {
+          const receiptNumber = `REC-${Date.now()}-${feeAssignment.id}`;
+          const { error: paymentError } = await supabase
+            .from("payments")
+            .insert({
+              fee_assignment_id: feeAssignment.id,
+              amount: feeAssignment.amount,
+              payment_method: "cash",
+              receipt_number: receiptNumber,
+              payment_date: new Date().toISOString().split('T')[0],
+            });
+          if (paymentError) throw paymentError;
+        }
+        
+        // Update fee assignment status
         const { error } = await supabase
           .from("fee_assignments")
-          .update({ status: update.status })
-          .eq("id", update.id);
+          .update({ status: isPaid ? "paid" : "pending" })
+          .eq("id", feeAssignment.id);
         if (error) throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["studentsWithFees"] });
-      queryClient.invalidateQueries({ queryKey: ["feeStats"] });
+    onSuccess: async () => {
+      // Invalidate all relevant queries including Dashboard
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["studentsWithFees"] }),
+        queryClient.invalidateQueries({ queryKey: ["feeStats"] }),
+        queryClient.invalidateQueries({ queryKey: ["students-for-fees"] }),
+        queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] }),
+        queryClient.invalidateQueries({ queryKey: ["fees-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["monthly-fees-chart"] }),
+        queryClient.invalidateQueries({ queryKey: ["income-breakdown"] }),
+      ]);
       toast({
         title: "Success",
         description: "Payment status updated successfully",

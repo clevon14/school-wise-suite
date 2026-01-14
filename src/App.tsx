@@ -26,8 +26,7 @@ import Syllabus from "./pages/Syllabus";
 import Notifications from "./pages/Notifications";
 import ReportCards from "./pages/ReportCards";
 import ParentTransportView from "./pages/ParentTransportView";
-import AIAssistant from "./pages/AIAssistant";
-import AdminFineTuning from "./pages/AdminFineTuning";
+import Reports from "./pages/Reports";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import AdminTeachers from "./pages/AdminTeachers";
 import NotFound from "./pages/NotFound";
@@ -219,24 +218,12 @@ const App = () => (
             }
           />
           <Route
-            path="/ai-assistant"
+            path="/reports"
             element={
               <ProtectedRoute>
                 <AppLayout>
-                  <AIAssistant />
+                  <Reports />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/fine-tuning"
-            element={
-              <ProtectedRoute>
-                <AdminRoute>
-                  <AppLayout>
-                    <AdminFineTuning />
-                  </AppLayout>
-                </AdminRoute>
               </ProtectedRoute>
             }
           />

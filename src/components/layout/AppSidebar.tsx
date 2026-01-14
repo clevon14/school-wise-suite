@@ -12,8 +12,7 @@ import {
   ListChecks,
   Award,
   LogOut,
-  Sparkles,
-  Settings,
+  BarChart3,
   Shield,
   UserPlus
 } from "lucide-react";
@@ -36,8 +35,7 @@ import { toast } from "sonner";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "AI Assistant", url: "/ai-assistant", icon: Sparkles },
-  { title: "Fine-Tuning", url: "/admin/fine-tuning", icon: Settings },
+  { title: "Reports", url: "/reports", icon: BarChart3 },
   { title: "Security", url: "/admin/security", icon: Shield },
   { title: "Teacher Accounts", url: "/admin/teachers", icon: UserPlus },
   { title: "Students", url: "/students", icon: GraduationCap },

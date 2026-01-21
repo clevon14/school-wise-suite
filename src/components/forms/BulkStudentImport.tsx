@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2, X } from "lucide-react";
+import * as XLSX from "xlsx";
 import {
   Dialog,
   DialogContent,
@@ -193,6 +194,84 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
     };
   };
 
+  // Convert Excel date serial number to YYYY-MM-DD format
+  const excelDateToString = (excelDate: number | string): string => {
+    if (typeof excelDate === 'string') return excelDate;
+    if (typeof excelDate !== 'number' || isNaN(excelDate)) return '';
+    
+    // Excel dates are days since 1900-01-01 (with a bug for 1900 leap year)
+    const date = new Date((excelDate - 25569) * 86400 * 1000);
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toISOString().split('T')[0];
+  };
+
+  // Parse Excel file using xlsx library
+  const parseExcel = (data: ArrayBuffer): string[][] => {
+    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // Convert to array of arrays, keeping raw values
+    const jsonData = XLSX.utils.sheet_to_json<any[]>(worksheet, { 
+      header: 1,
+      raw: false,
+      dateNF: 'yyyy-mm-dd'
+    });
+    
+    return jsonData.map(row => 
+      (row as any[]).map(cell => {
+        if (cell === null || cell === undefined) return '';
+        return String(cell).trim();
+      })
+    );
+  };
+
+  const processFileData = (rows: string[][]) => {
+    if (rows.length < 2) {
+      toast.error("File must have a header row and at least one data row");
+      return;
+    }
+
+    const headers = rows[0].map(h => (h || '').toLowerCase().trim());
+    const students: ParsedStudent[] = [];
+
+    // Map headers to field keys
+    const headerMap: Record<number, string> = {};
+    headers.forEach((header, index) => {
+      const mapping = FIELD_MAPPINGS.find(
+        f => f.label.toLowerCase() === header || f.key.toLowerCase() === header
+      );
+      if (mapping) {
+        headerMap[index] = mapping.key;
+      }
+    });
+
+    // Parse each data row
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.every(cell => !cell?.trim())) continue; // Skip empty rows
+
+      const data: Record<string, string> = {};
+      row.forEach((value, index) => {
+        const fieldKey = headerMap[index];
+        if (fieldKey) {
+          data[fieldKey] = (value || '').trim();
+        }
+      });
+
+      students.push(validateStudent(data, i + 1));
+    }
+
+    if (students.length === 0) {
+      toast.error("No valid data rows found in the file");
+      return;
+    }
+
+    setParsedStudents(students);
+    setStep("preview");
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -202,65 +281,50 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const rows = parseCSV(text);
-        
-        if (rows.length < 2) {
-          toast.error("File must have a header row and at least one data row");
-          return;
+    const fileName = file.name.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+    const isCSV = fileName.endsWith('.csv');
+
+    if (!isExcel && !isCSV) {
+      toast.error("Please upload a CSV or Excel (.xlsx, .xls) file");
+      return;
+    }
+
+    if (isExcel) {
+      // Handle Excel files
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result as ArrayBuffer;
+          const rows = parseExcel(data);
+          processFileData(rows);
+        } catch (error) {
+          console.error("Error parsing Excel file:", error);
+          toast.error("Failed to parse Excel file. Please check the format.");
         }
-
-        const headers = rows[0].map(h => h.toLowerCase().trim());
-        const students: ParsedStudent[] = [];
-
-        // Map headers to field keys
-        const headerMap: Record<number, string> = {};
-        headers.forEach((header, index) => {
-          const mapping = FIELD_MAPPINGS.find(
-            f => f.label.toLowerCase() === header || f.key.toLowerCase() === header
-          );
-          if (mapping) {
-            headerMap[index] = mapping.key;
-          }
-        });
-
-        // Parse each data row
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          if (row.every(cell => !cell.trim())) continue; // Skip empty rows
-
-          const data: Record<string, string> = {};
-          row.forEach((value, index) => {
-            const fieldKey = headerMap[index];
-            if (fieldKey) {
-              data[fieldKey] = value.trim();
-            }
-          });
-
-          students.push(validateStudent(data, i + 1));
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Handle CSV files
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          const rows = parseCSV(text);
+          processFileData(rows);
+        } catch (error) {
+          console.error("Error parsing CSV file:", error);
+          toast.error("Failed to parse CSV file. Please check the format.");
         }
-
-        if (students.length === 0) {
-          toast.error("No valid data rows found in the file");
-          return;
-        }
-
-        setParsedStudents(students);
-        setStep("preview");
-      } catch (error) {
-        console.error("Error parsing file:", error);
-        toast.error("Failed to parse file. Please check the format.");
-      }
-    };
-
-    reader.onerror = () => {
-      toast.error("Failed to read file");
-    };
-
-    reader.readAsText(file);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+      };
+      reader.readAsText(file);
+    }
   };
 
   const importStudents = useMutation({
@@ -360,7 +424,7 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
     importStudents.mutate();
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = (format: 'csv' | 'xlsx') => {
     const headers = FIELD_MAPPINGS.map(f => f.label);
     const sampleRow = [
       "2024001", "John Doe", "", "E308", "123456789012", "male", "2015-05-10",
@@ -375,14 +439,28 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
       "English", "2024-06-01", "01", "B+"
     ];
 
-    const csvContent = [headers.join(","), sampleRow.join(",")].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "student_import_template.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    if (format === 'xlsx') {
+      // Create Excel file
+      const worksheet = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+      
+      // Set column widths
+      const colWidths = headers.map(h => ({ wch: Math.max(h.length + 2, 15) }));
+      worksheet['!cols'] = colWidths;
+      
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+      XLSX.writeFile(workbook, "student_import_template.xlsx");
+    } else {
+      // Create CSV file
+      const csvContent = [headers.join(","), sampleRow.join(",")].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "student_import_template.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   const resetDialog = () => {
@@ -411,7 +489,7 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
             Bulk Student Import
           </DialogTitle>
           <DialogDescription>
-            Import multiple students from a CSV file
+            Import multiple students from CSV or Excel (.xlsx) files
           </DialogDescription>
         </DialogHeader>
 
@@ -442,10 +520,14 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
                 <CardHeader className="py-3">
                   <CardTitle className="text-sm">Step 2: Download Template</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <Button variant="outline" onClick={downloadTemplate} className="w-full">
+                <CardContent className="flex gap-2">
+                  <Button variant="outline" onClick={() => downloadTemplate('xlsx')} className="flex-1">
                     <Download className="h-4 w-4 mr-2" />
-                    Download CSV Template
+                    Excel Template
+                  </Button>
+                  <Button variant="outline" onClick={() => downloadTemplate('csv')} className="flex-1">
+                    <Download className="h-4 w-4 mr-2" />
+                    CSV Template
                   </Button>
                 </CardContent>
               </Card>
@@ -464,11 +546,11 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
                   <p className="text-sm text-muted-foreground mb-2">
                     Click to upload or drag and drop
                   </p>
-                  <p className="text-xs text-muted-foreground">CSV files only</p>
+                  <p className="text-xs text-muted-foreground">CSV or Excel (.xlsx, .xls) files</p>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".csv"
+                    accept=".csv,.xlsx,.xls"
                     className="hidden"
                     onChange={handleFileUpload}
                   />

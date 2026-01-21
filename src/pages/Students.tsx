@@ -3,9 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Trash2, UserX, Filter } from "lucide-react";
+import { Plus, User, Download, Trash2, UserX, Filter, Upload } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
+import { BulkStudentImport } from "@/components/forms/BulkStudentImport";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -179,6 +180,13 @@ export default function Students() {
         </div>
         <div className="flex gap-2">
           <CSVExportButton data={students || []} type="students" />
+          <BulkStudentImport>
+            <Button variant="outline">
+              <Upload className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Import CSV</span>
+              <span className="sm:hidden">Import</span>
+            </Button>
+          </BulkStudentImport>
           <AddStudentDialog>
             <Button className="flex-1 md:flex-none">
               <Plus className="h-4 w-4 mr-2" />

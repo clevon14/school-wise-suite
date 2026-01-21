@@ -1568,19 +1568,29 @@ export type Database = {
       }
       students: {
         Row: {
+          aadhar_number: string | null
           address: string | null
+          admission_medium: string | null
           admission_number: string
+          admission_standard: string | null
+          annual_income: string | null
           blood_group: string | null
           caste: string | null
           category: string | null
           class_id: string | null
           created_at: string | null
           date_of_birth: string | null
+          district: string | null
+          elder_brothers: number | null
+          elder_sisters: number | null
           enrollment_date: string | null
+          father_aadhar: string | null
+          father_living: boolean | null
           father_name: string | null
           father_occupation: string | null
           father_phone: string | null
           father_photo_url: string | null
+          father_qualification: string | null
           first_name: string
           gender: string | null
           guardian_address: string | null
@@ -1592,38 +1602,64 @@ export type Database = {
           house: string | null
           id: string
           last_name: string
+          last_school_leaving_date: string | null
+          last_school_name: string | null
+          last_school_standards: string | null
           measurement_date: string | null
           medical_history: string | null
+          mother_aadhar: string | null
+          mother_living: boolean | null
           mother_name: string | null
           mother_occupation: string | null
           mother_phone: string | null
           mother_photo_url: string | null
+          mother_qualification: string | null
+          mother_tongue: string | null
+          nationality: string | null
+          other_languages: string | null
           parent_email: string | null
           parent_name: string | null
           parent_phone: string | null
+          pen_number: string | null
           photo_url: string | null
+          place_of_birth: string | null
           religion: string | null
           roll_number: string | null
+          slc_date: string | null
+          slc_produced: boolean | null
           status: string | null
+          taluka: string | null
           updated_at: string | null
           user_id: string | null
           village: string | null
           weight: string | null
+          younger_brothers: number | null
+          younger_sisters: number | null
         }
         Insert: {
+          aadhar_number?: string | null
           address?: string | null
+          admission_medium?: string | null
           admission_number: string
+          admission_standard?: string | null
+          annual_income?: string | null
           blood_group?: string | null
           caste?: string | null
           category?: string | null
           class_id?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          district?: string | null
+          elder_brothers?: number | null
+          elder_sisters?: number | null
           enrollment_date?: string | null
+          father_aadhar?: string | null
+          father_living?: boolean | null
           father_name?: string | null
           father_occupation?: string | null
           father_phone?: string | null
           father_photo_url?: string | null
+          father_qualification?: string | null
           first_name: string
           gender?: string | null
           guardian_address?: string | null
@@ -1635,38 +1671,64 @@ export type Database = {
           house?: string | null
           id?: string
           last_name: string
+          last_school_leaving_date?: string | null
+          last_school_name?: string | null
+          last_school_standards?: string | null
           measurement_date?: string | null
           medical_history?: string | null
+          mother_aadhar?: string | null
+          mother_living?: boolean | null
           mother_name?: string | null
           mother_occupation?: string | null
           mother_phone?: string | null
           mother_photo_url?: string | null
+          mother_qualification?: string | null
+          mother_tongue?: string | null
+          nationality?: string | null
+          other_languages?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
+          pen_number?: string | null
           photo_url?: string | null
+          place_of_birth?: string | null
           religion?: string | null
           roll_number?: string | null
+          slc_date?: string | null
+          slc_produced?: boolean | null
           status?: string | null
+          taluka?: string | null
           updated_at?: string | null
           user_id?: string | null
           village?: string | null
           weight?: string | null
+          younger_brothers?: number | null
+          younger_sisters?: number | null
         }
         Update: {
+          aadhar_number?: string | null
           address?: string | null
+          admission_medium?: string | null
           admission_number?: string
+          admission_standard?: string | null
+          annual_income?: string | null
           blood_group?: string | null
           caste?: string | null
           category?: string | null
           class_id?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          district?: string | null
+          elder_brothers?: number | null
+          elder_sisters?: number | null
           enrollment_date?: string | null
+          father_aadhar?: string | null
+          father_living?: boolean | null
           father_name?: string | null
           father_occupation?: string | null
           father_phone?: string | null
           father_photo_url?: string | null
+          father_qualification?: string | null
           first_name?: string
           gender?: string | null
           guardian_address?: string | null
@@ -1678,23 +1740,39 @@ export type Database = {
           house?: string | null
           id?: string
           last_name?: string
+          last_school_leaving_date?: string | null
+          last_school_name?: string | null
+          last_school_standards?: string | null
           measurement_date?: string | null
           medical_history?: string | null
+          mother_aadhar?: string | null
+          mother_living?: boolean | null
           mother_name?: string | null
           mother_occupation?: string | null
           mother_phone?: string | null
           mother_photo_url?: string | null
+          mother_qualification?: string | null
+          mother_tongue?: string | null
+          nationality?: string | null
+          other_languages?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
+          pen_number?: string | null
           photo_url?: string | null
+          place_of_birth?: string | null
           religion?: string | null
           roll_number?: string | null
+          slc_date?: string | null
+          slc_produced?: boolean | null
           status?: string | null
+          taluka?: string | null
           updated_at?: string | null
           user_id?: string | null
           village?: string | null
           weight?: string | null
+          younger_brothers?: number | null
+          younger_sisters?: number | null
         }
         Relationships: [
           {

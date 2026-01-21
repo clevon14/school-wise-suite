@@ -30,47 +30,95 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const studentSchema = z.object({
+  // Basic Information
   admission_number: z.string().trim().min(1, "Admission number is required").max(50),
-  roll_number: z.string().trim().max(50).optional(),
-  first_name: z.string().trim().min(1, "First name is required").max(100),
-  last_name: z.string().trim().min(1, "Last name is required").max(100),
-  date_of_birth: z.string().min(1, "Date of birth is required"),
+  pen_number: z.string().trim().max(50).optional(),
+  first_name: z.string().trim().min(1, "Name is required").max(200),
+  last_name: z.string().trim().max(100).optional(),
+  aadhar_number: z.string().trim().max(20).optional(),
   gender: z.enum(["male", "female", "other"]),
-  class_id: z.string().uuid("Please select a class"),
-  category: z.string().trim().max(50).optional(),
-  religion: z.string().trim().max(50).optional(),
-  caste: z.string().trim().max(50).optional(),
+  date_of_birth: z.string().min(1, "Date of birth is required"),
+  place_of_birth: z.string().trim().max(100).optional(),
+  village: z.string().trim().max(100).optional(),
+  taluka: z.string().trim().max(100).optional(),
+  district: z.string().trim().max(100).optional(),
+  
+  // Father's Details
+  father_name: z.string().trim().max(200).optional(),
+  father_living: z.boolean().optional(),
+  father_aadhar: z.string().trim().max(20).optional(),
+  father_occupation: z.string().trim().max(100).optional(),
+  father_qualification: z.string().trim().max(100).optional(),
+  father_phone: z.string().trim().max(20).optional(),
+  father_photo: z.instanceof(File).optional(),
+  
+  // Mother's Details
+  mother_name: z.string().trim().max(200).optional(),
+  mother_living: z.boolean().optional(),
+  mother_aadhar: z.string().trim().max(20).optional(),
+  mother_occupation: z.string().trim().max(100).optional(),
+  mother_qualification: z.string().trim().max(100).optional(),
+  mother_phone: z.string().trim().max(20).optional(),
+  mother_photo: z.instanceof(File).optional(),
+  
+  // Income & Guardian
+  annual_income: z.string().trim().max(50).optional(),
+  guardian_address: z.string().trim().max(500).optional(),
   parent_phone: z.string().trim().max(20).optional(),
   parent_email: z.string().trim().email("Invalid email").max(255).optional().or(z.literal("")),
+  
+  // Caste & Nationality
+  nationality: z.string().trim().max(50).optional(),
+  religion: z.string().trim().max(50).optional(),
+  caste: z.string().trim().max(50).optional(),
+  category: z.string().trim().max(50).optional(),
+  
+  // Languages
+  mother_tongue: z.string().trim().max(50).optional(),
+  other_languages: z.string().trim().max(200).optional(),
+  
+  // Siblings
+  elder_brothers: z.number().min(0).optional(),
+  younger_brothers: z.number().min(0).optional(),
+  elder_sisters: z.number().min(0).optional(),
+  younger_sisters: z.number().min(0).optional(),
+  
+  // Previous School
+  address: z.string().trim().max(500).optional(),
+  last_school_name: z.string().trim().max(200).optional(),
+  last_school_standards: z.string().trim().max(100).optional(),
+  last_school_leaving_date: z.string().optional(),
+  slc_produced: z.boolean().optional(),
+  slc_date: z.string().optional(),
+  
+  // Admission Details
+  class_id: z.string().uuid("Please select a class"),
+  admission_standard: z.string().trim().max(50).optional(),
+  admission_medium: z.string().trim().max(50).optional(),
   enrollment_date: z.string().optional(),
+  
+  // Photo
+  photo: z.instanceof(File).optional(),
+  
+  // Additional fields kept for compatibility
+  roll_number: z.string().trim().max(50).optional(),
   blood_group: z.string().trim().max(10).optional(),
   house: z.string().trim().max(50).optional(),
   height: z.string().trim().max(20).optional(),
   weight: z.string().trim().max(20).optional(),
   measurement_date: z.string().optional(),
   medical_history: z.string().trim().max(1000).optional(),
-  parent_name: z.string().trim().max(200).optional(),
-  address: z.string().trim().max(500).optional(),
-  photo: z.instanceof(File).optional(),
-  // Parent/Guardian details
-  father_name: z.string().trim().max(200).optional(),
-  father_phone: z.string().trim().max(20).optional(),
-  father_occupation: z.string().trim().max(100).optional(),
-  father_photo: z.instanceof(File).optional(),
-  mother_name: z.string().trim().max(200).optional(),
-  mother_phone: z.string().trim().max(20).optional(),
-  mother_occupation: z.string().trim().max(100).optional(),
-  mother_photo: z.instanceof(File).optional(),
   guardian_is: z.enum(["father", "mother", "other"]).optional(),
   guardian_relation: z.string().trim().max(100).optional(),
   guardian_occupation: z.string().trim().max(100).optional(),
   guardian_photo: z.instanceof(File).optional(),
-  guardian_address: z.string().trim().max(500).optional(),
+  
   // Fees
   selected_fees: z.array(z.string()).optional(),
   selected_discounts: z.array(z.string()).optional(),
@@ -114,36 +162,62 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
     resolver: zodResolver(studentSchema),
     defaultValues: {
       admission_number: "",
-      roll_number: "",
+      pen_number: "",
       first_name: "",
       last_name: "",
-      date_of_birth: "",
+      aadhar_number: "",
       gender: "male",
-      class_id: "",
-      category: "",
-      religion: "",
-      caste: "",
+      date_of_birth: "",
+      place_of_birth: "",
+      village: "",
+      taluka: "",
+      district: "",
+      father_name: "",
+      father_living: true,
+      father_aadhar: "",
+      father_occupation: "",
+      father_qualification: "",
+      father_phone: "",
+      mother_name: "",
+      mother_living: true,
+      mother_aadhar: "",
+      mother_occupation: "",
+      mother_qualification: "",
+      mother_phone: "",
+      annual_income: "",
+      guardian_address: "",
       parent_phone: "",
       parent_email: "",
+      nationality: "Indian",
+      religion: "",
+      caste: "",
+      category: "",
+      mother_tongue: "",
+      other_languages: "",
+      elder_brothers: 0,
+      younger_brothers: 0,
+      elder_sisters: 0,
+      younger_sisters: 0,
+      address: "",
+      last_school_name: "",
+      last_school_standards: "",
+      last_school_leaving_date: "",
+      slc_produced: false,
+      slc_date: "",
+      class_id: "",
+      admission_standard: "",
+      admission_medium: "English",
       enrollment_date: new Date().toISOString().split('T')[0],
+      roll_number: "",
       blood_group: "",
       house: "",
       height: "",
       weight: "",
       measurement_date: new Date().toISOString().split('T')[0],
       medical_history: "",
-      parent_name: "",
-      address: "",
-      father_name: "",
-      father_phone: "",
-      father_occupation: "",
-      mother_name: "",
-      mother_phone: "",
-      mother_occupation: "",
       guardian_is: undefined,
       guardian_relation: "",
       guardian_occupation: "",
-      guardian_address: "",
     },
   });
 
@@ -154,9 +228,10 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
       let mother_photo_url = null;
       let guardian_photo_url = null;
 
+      setUploading(true);
+
       // Upload student photo if provided
       if (values.photo) {
-        setUploading(true);
         const fileExt = values.photo.name.split('.').pop();
         const fileName = `students/${Date.now()}-${Math.random()}.${fileExt}`;
         
@@ -171,7 +246,6 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
           .getPublicUrl(fileName);
         
         photo_url = publicUrl;
-        setUploading(false);
       }
 
       // Upload father photo if provided
@@ -204,44 +278,72 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
         guardian_photo_url = publicUrl;
       }
 
+      setUploading(false);
+
       const { data, error } = await supabase
         .from("students")
         .insert([{
           admission_number: values.admission_number,
-          roll_number: values.roll_number || null,
+          pen_number: values.pen_number || null,
           first_name: values.first_name,
-          last_name: values.last_name,
-          date_of_birth: values.date_of_birth,
+          last_name: values.last_name || "",
+          aadhar_number: values.aadhar_number || null,
           gender: values.gender,
-          class_id: values.class_id,
-          category: values.category || null,
-          religion: values.religion || null,
-          caste: values.caste || null,
+          date_of_birth: values.date_of_birth,
+          place_of_birth: values.place_of_birth || null,
+          village: values.village || null,
+          taluka: values.taluka || null,
+          district: values.district || null,
+          father_name: values.father_name || null,
+          father_living: values.father_living,
+          father_aadhar: values.father_aadhar || null,
+          father_occupation: values.father_occupation || null,
+          father_qualification: values.father_qualification || null,
+          father_phone: values.father_phone || null,
+          father_photo_url,
+          mother_name: values.mother_name || null,
+          mother_living: values.mother_living,
+          mother_aadhar: values.mother_aadhar || null,
+          mother_occupation: values.mother_occupation || null,
+          mother_qualification: values.mother_qualification || null,
+          mother_phone: values.mother_phone || null,
+          mother_photo_url,
+          annual_income: values.annual_income || null,
+          guardian_address: values.guardian_address || null,
           parent_phone: values.parent_phone || null,
           parent_email: values.parent_email || null,
+          nationality: values.nationality || null,
+          religion: values.religion || null,
+          caste: values.caste || null,
+          category: values.category || null,
+          mother_tongue: values.mother_tongue || null,
+          other_languages: values.other_languages || null,
+          elder_brothers: values.elder_brothers || 0,
+          younger_brothers: values.younger_brothers || 0,
+          elder_sisters: values.elder_sisters || 0,
+          younger_sisters: values.younger_sisters || 0,
+          address: values.address || null,
+          last_school_name: values.last_school_name || null,
+          last_school_standards: values.last_school_standards || null,
+          last_school_leaving_date: values.last_school_leaving_date || null,
+          slc_produced: values.slc_produced || false,
+          slc_date: values.slc_date || null,
+          class_id: values.class_id,
+          admission_standard: values.admission_standard || null,
+          admission_medium: values.admission_medium || null,
           enrollment_date: values.enrollment_date || null,
+          photo_url,
+          roll_number: values.roll_number || null,
           blood_group: values.blood_group || null,
           house: values.house || null,
           height: values.height || null,
           weight: values.weight || null,
           measurement_date: values.measurement_date || null,
           medical_history: values.medical_history || null,
-          parent_name: values.parent_name || null,
-          address: values.address || null,
-          photo_url,
-          father_name: values.father_name || null,
-          father_phone: values.father_phone || null,
-          father_occupation: values.father_occupation || null,
-          father_photo_url,
-          mother_name: values.mother_name || null,
-          mother_phone: values.mother_phone || null,
-          mother_occupation: values.mother_occupation || null,
-          mother_photo_url,
           guardian_is: values.guardian_is || null,
           guardian_relation: values.guardian_relation || null,
           guardian_occupation: values.guardian_occupation || null,
           guardian_photo_url,
-          guardian_address: values.guardian_address || null,
           status: "active",
         }])
         .select()
@@ -271,7 +373,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
       queryClient.invalidateQueries({ queryKey: ["students-count"] });
-      toast.success("Student added successfully");
+      toast.success("Student admitted successfully");
       form.reset();
       setSelectedFees([]);
       setFeeAmounts({});
@@ -279,7 +381,8 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
       setOpen(false);
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to add student");
+      setUploading(false);
+      toast.error(error.message || "Failed to admit student");
     },
   });
 
@@ -290,809 +393,881 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Student Admission</DialogTitle>
-          <DialogDescription>
-            Enter complete student details for admission
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="text-center border-b pb-4">
+          <DialogTitle className="text-xl font-bold">GULBARGA DIOCESE EDUCATION SOCIETY</DialogTitle>
+          <DialogDescription className="text-lg font-semibold">
+            HOLY CROSS ENGLISH MEDIUM SCHOOL<br />
+            <span className="text-sm font-normal">SANTHPUR, AURAD TQ. BIDAR-585421</span>
           </DialogDescription>
+          <h3 className="text-lg font-bold mt-2 text-foreground">APPLICATION FOR ADMISSION</h3>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Row 1: Admission No, Roll Number, Class, Section */}
-            <div className="grid grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="admission_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Admission No *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter admission number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="roll_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Roll Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter roll number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="class_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {classes?.map((cls) => (
-                          <SelectItem key={cls.id} value={cls.id}>
-                            {cls.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormItem>
-                <FormLabel>Section</FormLabel>
-                <FormControl>
-                  <Input placeholder="Select" disabled value={classes?.find(c => c.id === form.watch("class_id"))?.section || ""} />
-                </FormControl>
-              </FormItem>
-            </div>
-
-            {/* Row 2: First Name, Last Name, Gender, Date Of Birth */}
-            <div className="grid grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="first_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter first name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="last_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter last name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Gender *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="date_of_birth"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date Of Birth *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Row 3: Category, Religion, Caste, Mobile Number, Email */}
-            <div className="grid grid-cols-5 gap-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="General">General</SelectItem>
-                        <SelectItem value="OBC">OBC</SelectItem>
-                        <SelectItem value="SC">SC</SelectItem>
-                        <SelectItem value="ST">ST</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="religion"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Religion</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter religion" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="caste"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Caste</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter caste" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="parent_phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mobile Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter mobile" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="parent_email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="Enter email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Row 4: Admission Date, Student Photo, Blood Group, House */}
-            <div className="grid grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="enrollment_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Admission Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="photo"
-                render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem>
-                    <FormLabel>Student Photo (100px X 100px)</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) onChange(file);
-                          }}
-                          {...field}
-                          className="text-xs"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="blood_group"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Blood Group</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="A+">A+</SelectItem>
-                        <SelectItem value="A-">A-</SelectItem>
-                        <SelectItem value="B+">B+</SelectItem>
-                        <SelectItem value="B-">B-</SelectItem>
-                        <SelectItem value="O+">O+</SelectItem>
-                        <SelectItem value="O-">O-</SelectItem>
-                        <SelectItem value="AB+">AB+</SelectItem>
-                        <SelectItem value="AB-">AB-</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="house"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>House</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Red">Red</SelectItem>
-                        <SelectItem value="Blue">Blue</SelectItem>
-                        <SelectItem value="Green">Green</SelectItem>
-                        <SelectItem value="Yellow">Yellow</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Row 5: Height, Weight, Measurement Date */}
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="height"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Height</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter height (cm)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter weight (kg)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="measurement_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Measurement Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Medical History */}
-            <FormField
-              control={form.control}
-              name="medical_history"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medical History</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Enter medical history details" 
-                      className="min-h-[100px]"
-                      {...field} 
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+            
+            {/* Section 1: Basic Student Information */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Student Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-12 gap-4">
+                  {/* Photo Upload */}
+                  <div className="col-span-3 flex flex-col items-center justify-start">
+                    <FormField
+                      control={form.control}
+                      name="photo"
+                      render={({ field: { onChange, value, ...field } }) => (
+                        <FormItem>
+                          <FormLabel>Photo</FormLabel>
+                          <FormControl>
+                            <div className="flex flex-col items-center">
+                              <label className="w-24 h-28 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:bg-muted/50">
+                                {value ? (
+                                  <img src={URL.createObjectURL(value)} alt="Preview" className="w-full h-full object-cover rounded" />
+                                ) : (
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                )}
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => onChange(e.target.files?.[0])}
+                                  {...field}
+                                />
+                              </label>
+                            </div>
+                          </FormControl>
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  </div>
 
-            {/* Parent Guardian Detail Section */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium text-lg">Parent Guardian Detail</h4>
-              
-              {/* Father Details */}
-              <div className="grid grid-cols-4 gap-4">
-                <FormField
-                  control={form.control}
-                  name="father_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Father Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter father name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  {/* Basic Info Fields */}
+                  <div className="col-span-9 grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="admission_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Admission No. *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter admission number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="father_phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Father Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter phone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="pen_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>PEN No.</FormLabel>
+                          <FormControl>
+                            <Input placeholder="E308" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="father_occupation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Father Occupation</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter occupation" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="class_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Class *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select class" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {classes?.map((cls) => (
+                                <SelectItem key={cls.id} value={cls.id}>
+                                  {cls.name} {cls.section ? `- ${cls.section}` : ""}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="father_photo"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Father Photo (100px X 100px)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) onChange(file);
-                          }}
-                          {...field}
-                          className="text-xs"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                    <FormField
+                      control={form.control}
+                      name="first_name"
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                          <FormLabel>Name of the Pupil (Block Letters) *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter full name" {...field} className="uppercase" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {/* Mother Details */}
-              <div className="grid grid-cols-4 gap-4">
-                <FormField
-                  control={form.control}
-                  name="mother_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mother Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter mother name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="aadhar_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pupil Aadhar No.</FormLabel>
+                          <FormControl>
+                            <Input placeholder="12 digit Aadhar" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="mother_phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mother Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter phone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Boy or Girl *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="male">Boy</SelectItem>
+                            <SelectItem value="female">Girl</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="mother_occupation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mother Occupation</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter occupation" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="date_of_birth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Birth *</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="mother_photo"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Mother Photo (100px X 100px)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) onChange(file);
-                          }}
-                          {...field}
-                          className="text-xs"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="place_of_birth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Place of Birth</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Village/Town" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Guardian Details */}
-              <FormField
-                control={form.control}
-                name="guardian_is"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>If Guardian Is *</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            value="father"
-                            checked={field.value === "father"}
-                            onChange={() => field.onChange("father")}
-                            className="w-4 h-4"
+                  <FormField
+                    control={form.control}
+                    name="village"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Village</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Village name" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="taluka"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Taluka</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Taluka" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="district"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>District</FormLabel>
+                        <FormControl>
+                          <Input placeholder="District" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="enrollment_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Admission</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Section 2: Father's Details */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Father's Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="father_name"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Father's Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter father's name" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="father_living"
+                    render={({ field }) => (
+                      <FormItem className="flex items-end space-x-2 pb-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
-                          <span>Father</span>
-                        </label>
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            value="mother"
-                            checked={field.value === "mother"}
-                            onChange={() => field.onChange("mother")}
-                            className="w-4 h-4"
+                        </FormControl>
+                        <FormLabel className="!mt-0">Living</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="father_aadhar"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Father's Aadhar No.</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12 digit Aadhar" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="father_occupation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Occupation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Occupation" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="father_qualification"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Qualification</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Education" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="father_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Mobile number" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="father_photo"
+                    render={({ field: { onChange, value, ...field } }) => (
+                      <FormItem>
+                        <FormLabel>Photo</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => onChange(e.target.files?.[0])}
+                            {...field}
                           />
-                          <span>Mother</span>
-                        </label>
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            value="other"
-                            checked={field.value === "other"}
-                            onChange={() => field.onChange("other")}
-                            className="w-4 h-4"
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Section 3: Mother's Details */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Mother's Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="mother_name"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Mother's Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter mother's name" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="mother_living"
+                    render={({ field }) => (
+                      <FormItem className="flex items-end space-x-2 pb-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
-                          <span>Other</span>
-                        </label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        </FormControl>
+                        <FormLabel className="!mt-0">Living</FormLabel>
+                      </FormItem>
+                    )}
+                  />
 
-              <div className="grid grid-cols-4 gap-4">
-                <FormField
-                  control={form.control}
-                  name="parent_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Guardian Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter guardian name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="mother_aadhar"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mother's Aadhar No.</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12 digit Aadhar" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="guardian_relation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Guardian Relation</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter relation" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="mother_occupation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Occupation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Occupation" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="parent_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Guardian Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="Enter email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="mother_qualification"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Qualification</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Education" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="guardian_photo"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Guardian Photo (100px X 100px)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) onChange(file);
-                          }}
-                          {...field}
-                          className="text-xs"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="mother_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Mobile number" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="parent_phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Guardian Phone *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter phone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="mother_photo"
+                    render={({ field: { onChange, value, ...field } }) => (
+                      <FormItem>
+                        <FormLabel>Photo</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => onChange(e.target.files?.[0])}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                <FormField
-                  control={form.control}
-                  name="guardian_occupation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Guardian Occupation</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter occupation" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            {/* Section 4: Guardian & Income */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Guardian & Income Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="annual_income"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Parent's Annual Income</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Annual income" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="parent_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact No.</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Contact number" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="parent_email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Email address" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
                   name="guardian_address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Guardian Address</FormLabel>
+                      <FormLabel>Guardian's Name and Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter address" {...field} />
+                        <Input placeholder="Enter guardian's name and full address" {...field} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            {/* Additional Fields Section */}
-            <div className="space-y-4 pt-2 border-t">
-              <h4 className="font-medium">Student Address</h4>
-              
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter address" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Section 5: Nationality & Caste */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Nationality, Religion and Caste</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="nationality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nationality</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Indian" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-            {/* Fees Details Section */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium text-lg">Fees Details</h4>
-              
-              <div className="space-y-2">
-                {feeCategories?.map((fee) => (
-                  <div key={fee.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Checkbox
-                      checked={selectedFees.includes(fee.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedFees([...selectedFees, fee.id]);
-                          setFeeAmounts({...feeAmounts, [fee.id]: fee.amount});
-                        } else {
-                          setSelectedFees(selectedFees.filter(id => id !== fee.id));
-                          const newAmounts = {...feeAmounts};
-                          delete newAmounts[fee.id];
-                          setFeeAmounts(newAmounts);
-                        }
-                      }}
-                    />
-                    <label className="text-sm font-medium cursor-pointer flex-1">
-                      {fee.name}
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">₹</span>
-                      <Input
-                        type="number"
-                        placeholder="Amount"
-                        value={feeAmounts[fee.id] || fee.amount}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setFeeAmounts({...feeAmounts, [fee.id]: value});
-                        }}
-                        disabled={!selectedFees.includes(fee.id)}
-                        className="w-32 h-8 text-sm"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="religion"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Religion</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Religion" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-              <div className="pt-2">
-                <h5 className="font-medium mb-2">Fees Discount Details</h5>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Checkbox
-                      checked={selectedDiscounts.includes('sibling-disc')}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDiscounts([...selectedDiscounts, 'sibling-disc']);
-                        } else {
-                          setSelectedDiscounts(selectedDiscounts.filter(d => d !== 'sibling-disc'));
-                        }
-                      }}
-                    />
-                    <label className="text-sm cursor-pointer">
-                      Sibling Discount - sibling-disc
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Checkbox
-                      checked={selectedDiscounts.includes('handicap-disc')}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDiscounts([...selectedDiscounts, 'handicap-disc']);
-                        } else {
-                          setSelectedDiscounts(selectedDiscounts.filter(d => d !== 'handicap-disc'));
-                        }
-                      }}
-                    />
-                    <label className="text-sm cursor-pointer">
-                      Handicapped Discount - handicap-disc
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Checkbox
-                      checked={selectedDiscounts.includes('cls-top-disc')}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDiscounts([...selectedDiscounts, 'cls-top-disc']);
-                        } else {
-                          setSelectedDiscounts(selectedDiscounts.filter(d => d !== 'cls-top-disc'));
-                        }
-                      }}
-                    />
-                    <label className="text-sm cursor-pointer">
-                      Class Topper Discount - cls-top-disc
-                    </label>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="caste"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Caste</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Caste" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SC/ST/OBC</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="General">General</SelectItem>
+                            <SelectItem value="OBC">OBC</SelectItem>
+                            <SelectItem value="SC">SC</SelectItem>
+                            <SelectItem value="ST">ST</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
+            {/* Section 6: Languages */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Languages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="mother_tongue"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mother Tongue</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Mother tongue" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="other_languages"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Any Other Languages Spoken</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Other languages" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Section 7: Siblings */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Siblings Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="elder_brothers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Elder Brothers</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="younger_brothers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Younger Brothers</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="elder_sisters"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Elder Sisters</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="younger_sisters"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Younger Sisters</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Section 8: Previous School */}
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base">Previous School Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Permanent Address of Pupil</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter permanent address" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="last_school_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last School Attended</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Name of school" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="last_school_standards"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Standards Covered</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., 1-5" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="last_school_leaving_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Leaving</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="slc_produced"
+                    render={({ field }) => (
+                      <FormItem className="flex items-end space-x-2 pb-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="!mt-0">School Leaving Certificate Produced</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="slc_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SLC Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="admission_medium"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Medium</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="English">English</SelectItem>
+                            <SelectItem value="Kannada">Kannada</SelectItem>
+                            <SelectItem value="Hindi">Hindi</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Section 9: Fee Assignment */}
+            {feeCategories && feeCategories.length > 0 && (
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">Fee Assignment (Optional)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    {feeCategories.map((category) => (
+                      <div key={category.id} className="flex items-center space-x-2 p-2 border rounded">
+                        <Checkbox
+                          checked={selectedFees.includes(category.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedFees([...selectedFees, category.id]);
+                              setFeeAmounts({ ...feeAmounts, [category.id]: category.amount || 0 });
+                            } else {
+                              setSelectedFees(selectedFees.filter(id => id !== category.id));
+                              const newAmounts = { ...feeAmounts };
+                              delete newAmounts[category.id];
+                              setFeeAmounts(newAmounts);
+                            }
+                          }}
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{category.name}</p>
+                          <p className="text-xs text-muted-foreground">₹{category.amount}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Submit */}
+            <div className="flex justify-end gap-4 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={createStudent.isPending || uploading}>
-                {uploading ? "Uploading..." : createStudent.isPending ? "Adding..." : "Add Student"}
+                {uploading ? "Uploading..." : createStudent.isPending ? "Submitting..." : "Submit Admission"}
               </Button>
             </div>
           </form>

@@ -98,6 +98,7 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
   const [parsedStudents, setParsedStudents] = useState<ParsedStudent[]>([]);
   const [importProgress, setImportProgress] = useState(0);
   const [importResults, setImportResults] = useState<{ success: number; failed: number }>({ success: 0, failed: 0 });
+  const [existingAdmissionNumbers, setExistingAdmissionNumbers] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -112,6 +113,18 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
       return data;
     },
   });
+
+  // Fetch existing admission numbers for duplicate detection
+  const fetchExistingAdmissionNumbers = async () => {
+    const { data, error } = await supabase
+      .from("students")
+      .select("admission_number");
+    if (error) {
+      console.error("Error fetching existing admission numbers:", error);
+      return new Set<string>();
+    }
+    return new Set(data?.map(s => s.admission_number?.toLowerCase().trim()) || []);
+  };
 
   const parseCSV = (text: string): string[][] => {
     const lines = text.split(/\r?\n/).filter(line => line.trim());
@@ -227,14 +240,19 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const processFileData = (rows: string[][]) => {
+  const processFileData = async (rows: string[][]) => {
     if (rows.length < 2) {
       toast.error("File must have a header row and at least one data row");
       return;
     }
 
+    // Fetch existing admission numbers for duplicate detection
+    const existingNumbers = await fetchExistingAdmissionNumbers();
+    setExistingAdmissionNumbers(existingNumbers);
+
     const headers = rows[0].map(h => (h || '').toLowerCase().trim());
     const students: ParsedStudent[] = [];
+    const seenAdmissionNumbers = new Set<string>();
 
     // Map headers to field keys
     const headerMap: Record<number, string> = {};
@@ -260,7 +278,25 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
         }
       });
 
-      students.push(validateStudent(data, i + 1));
+      const student = validateStudent(data, i + 1);
+      
+      // Check for duplicates
+      const admissionNum = data.admission_number?.toLowerCase().trim();
+      if (admissionNum) {
+        // Check if duplicate within the file
+        if (seenAdmissionNumbers.has(admissionNum)) {
+          student.errors.push(`Duplicate admission number in file: ${data.admission_number}`);
+          student.isValid = false;
+        }
+        // Check if already exists in database
+        else if (existingNumbers.has(admissionNum)) {
+          student.errors.push(`Admission number already exists in database: ${data.admission_number}`);
+          student.isValid = false;
+        }
+        seenAdmissionNumbers.add(admissionNum);
+      }
+
+      students.push(student);
     }
 
     if (students.length === 0) {
@@ -293,11 +329,11 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
     if (isExcel) {
       // Handle Excel files
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const data = e.target?.result as ArrayBuffer;
           const rows = parseExcel(data);
-          processFileData(rows);
+          await processFileData(rows);
         } catch (error) {
           console.error("Error parsing Excel file:", error);
           toast.error("Failed to parse Excel file. Please check the format.");
@@ -310,11 +346,11 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
     } else {
       // Handle CSV files
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const text = e.target?.result as string;
           const rows = parseCSV(text);
-          processFileData(rows);
+          await processFileData(rows);
         } catch (error) {
           console.error("Error parsing CSV file:", error);
           toast.error("Failed to parse CSV file. Please check the format.");

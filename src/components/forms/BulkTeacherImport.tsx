@@ -80,8 +80,25 @@ export function BulkTeacherImport({ children }: { children: React.ReactNode }) {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<{ success: number; failed: number } | null>(null);
+  const [existingEmployeeNumbers, setExistingEmployeeNumbers] = useState<Set<string>>(new Set());
+  const [existingEmails, setExistingEmails] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch existing employee numbers and emails for duplicate detection
+  const fetchExistingEmployees = async () => {
+    const { data, error } = await supabase
+      .from("employees")
+      .select("employee_number, email");
+    if (error) {
+      console.error("Error fetching existing employees:", error);
+      return { numbers: new Set<string>(), emails: new Set<string>() };
+    }
+    return {
+      numbers: new Set(data?.map(e => e.employee_number?.toLowerCase().trim()).filter(Boolean) || []),
+      emails: new Set(data?.map(e => e.email?.toLowerCase().trim()).filter(Boolean) || [])
+    };
+  };
 
   const parseCSV = (text: string): string[][] => {
     const rows: string[][] = [];
@@ -186,7 +203,7 @@ export function BulkTeacherImport({ children }: { children: React.ReactNode }) {
       const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
       const reader = new FileReader();
 
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           let rows: string[][];
 
@@ -205,8 +222,15 @@ export function BulkTeacherImport({ children }: { children: React.ReactNode }) {
             return;
           }
 
+          // Fetch existing employee data for duplicate detection
+          const { numbers: existingNumbers, emails: existingEmailSet } = await fetchExistingEmployees();
+          setExistingEmployeeNumbers(existingNumbers);
+          setExistingEmails(existingEmailSet);
+
           const headers = rows[0].map((h) => h.toLowerCase().trim());
           const dataRows = rows.slice(1);
+          const seenEmployeeNumbers = new Set<string>();
+          const seenEmails = new Set<string>();
 
           const parsed: ParsedTeacher[] = dataRows.map((row, index) => {
             const data: Record<string, string> = {};
@@ -223,7 +247,41 @@ export function BulkTeacherImport({ children }: { children: React.ReactNode }) {
               }
             });
 
-            return validateTeacher(data, index + 2);
+            const teacher = validateTeacher(data, index + 2);
+            
+            // Check for duplicates
+            const empNum = data.employee_number?.toLowerCase().trim();
+            const email = data.email?.toLowerCase().trim();
+            
+            if (empNum) {
+              // Check if duplicate within the file
+              if (seenEmployeeNumbers.has(empNum)) {
+                teacher.errors.push(`Duplicate employee number in file: ${data.employee_number}`);
+                teacher.isValid = false;
+              }
+              // Check if already exists in database
+              else if (existingNumbers.has(empNum)) {
+                teacher.errors.push(`Employee number already exists in database: ${data.employee_number}`);
+                teacher.isValid = false;
+              }
+              seenEmployeeNumbers.add(empNum);
+            }
+            
+            if (email) {
+              // Check if duplicate within the file
+              if (seenEmails.has(email)) {
+                teacher.errors.push(`Duplicate email in file: ${data.email}`);
+                teacher.isValid = false;
+              }
+              // Check if already exists in database
+              else if (existingEmailSet.has(email)) {
+                teacher.errors.push(`Email already exists in database: ${data.email}`);
+                teacher.isValid = false;
+              }
+              seenEmails.add(email);
+            }
+
+            return teacher;
           });
 
           setParsedData(parsed);

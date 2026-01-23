@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Trash2, UserX, Filter, Upload } from "lucide-react";
+import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
 import { BulkStudentImport } from "@/components/forms/BulkStudentImport";
+import { PromoteStudentsDialog } from "@/components/students/PromoteStudentsDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -44,6 +45,7 @@ export default function Students() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showClassDeleteDialog, setShowClassDeleteDialog] = useState(false);
+  const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const queryClient = useQueryClient();
@@ -238,14 +240,24 @@ export default function Students() {
               </p>
               <div className="flex gap-2">
                 {activeTab === "active" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowTransferDialog(true)}
-                  >
-                    <UserX className="h-4 w-4 mr-2" />
-                    Transfer
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPromoteDialog(true)}
+                    >
+                      <GraduationCap className="h-4 w-4 mr-2" />
+                      Promote/Retain
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTransferDialog(true)}
+                    >
+                      <UserX className="h-4 w-4 mr-2" />
+                      Transfer
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="destructive"
@@ -461,6 +473,15 @@ export default function Students() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Promote/Retain Dialog */}
+      <PromoteStudentsDialog
+        open={showPromoteDialog}
+        onOpenChange={setShowPromoteDialog}
+        selectedStudents={selectedStudents}
+        students={allStudents || []}
+        onSuccess={() => setSelectedStudents([])}
+      />
     </div>
   );
 }

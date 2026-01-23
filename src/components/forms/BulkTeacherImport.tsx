@@ -347,47 +347,10 @@ export function BulkTeacherImport({ children }: { children: React.ReactNode }) {
 
   const downloadTemplate = (format: "csv" | "xlsx") => {
     const headers = FIELD_MAPPINGS.map((f) => f.label);
-    const sampleRow = [
-      "EMP001",
-      "John",
-      "Doe",
-      "john.doe@school.com",
-      "9876543210",
-      "Male",
-      "1985-06-15",
-      "Robert Doe",
-      "Mary Doe",
-      "Married",
-      "123 Main St",
-      "456 Home Ave",
-      "9876543211",
-      "M.Ed, B.Ed",
-      "5 years",
-      "Mathematics",
-      "Senior Teacher",
-      "teacher",
-      "2020-04-01",
-      "Permanent",
-      "Morning",
-      "Main Campus",
-      "45000",
-      "ABCDE1234F",
-      "EPF123456",
-      "John Doe",
-      "123456789012",
-      "State Bank",
-      "SBIN0001234",
-      "City Branch",
-      "10",
-      "12",
-      "6",
-      "180",
-      "Experienced math teacher",
-    ];
 
     if (format === "xlsx") {
       const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+      const ws = XLSX.utils.aoa_to_sheet([headers]);
 
       const colWidths = headers.map((h) => ({ wch: Math.max(h.length + 2, 15) }));
       ws["!cols"] = colWidths;
@@ -395,7 +358,7 @@ export function BulkTeacherImport({ children }: { children: React.ReactNode }) {
       XLSX.utils.book_append_sheet(wb, ws, "Teachers");
       XLSX.writeFile(wb, "teacher_import_template.xlsx");
     } else {
-      const csvContent = [headers.join(","), sampleRow.map((v) => `"${v}"`).join(",")].join("\n");
+      const csvContent = headers.join(",");
       const blob = new Blob([csvContent], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

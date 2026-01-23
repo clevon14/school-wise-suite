@@ -426,22 +426,10 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
 
   const downloadTemplate = (format: 'csv' | 'xlsx') => {
     const headers = FIELD_MAPPINGS.map(f => f.label);
-    const sampleRow = [
-      "2024001", "John Doe", "", "E308", "123456789012", "male", "2015-05-10",
-      "Bidar", "Santhpur", "Aurad", "Bidar",
-      "Ramesh Doe", "yes", "123456789013", "Farmer", "10th", "9876543210",
-      "Sunita Doe", "yes", "123456789014", "Housewife", "8th", "9876543211",
-      "200000", "Main Road, Santhpur", "9876543210", "parent@email.com",
-      "Indian", "Hindu", "Lingayat", "OBC",
-      "Kannada", "English, Hindi", "1", "0", "1", "0",
-      "Main Road, Santhpur, Bidar",
-      "Government School", "1-5", "2023-04-30", "yes", "2023-05-01",
-      "English", "2024-06-01", "01", "B+"
-    ];
 
     if (format === 'xlsx') {
-      // Create Excel file
-      const worksheet = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+      // Create Excel file with headers only
+      const worksheet = XLSX.utils.aoa_to_sheet([headers]);
       
       // Set column widths
       const colWidths = headers.map(h => ({ wch: Math.max(h.length + 2, 15) }));
@@ -451,8 +439,8 @@ export function BulkStudentImport({ children }: { children: React.ReactNode }) {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
       XLSX.writeFile(workbook, "student_import_template.xlsx");
     } else {
-      // Create CSV file
-      const csvContent = [headers.join(","), sampleRow.join(",")].join("\n");
+      // Create CSV file with headers only
+      const csvContent = headers.join(",");
       const blob = new Blob([csvContent], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

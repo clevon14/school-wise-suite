@@ -62,22 +62,37 @@ export function PromoteStudentsDialog({
         throw new Error("Please select a target class");
       }
 
-      const updateData: any = {};
-      
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentYear = new Date().getFullYear().toString();
+
+      // Update students
       if (action === "promote") {
-        updateData.class_id = targetClassId;
+        const { error } = await supabase
+          .from("students")
+          .update({ class_id: targetClassId })
+          .in("id", selectedStudents);
+        if (error) throw error;
       }
-      // For retain, we don't change the class_id, just keep them in current class
 
-      const { error } = await supabase
-        .from("students")
-        .update(updateData)
-        .in("id", selectedStudents);
+      // Log promotion history for each student
+      const historyRecords = selectedStudentDetails.map((student) => ({
+        student_id: student.id,
+        from_class_id: student.class_id,
+        to_class_id: action === "promote" ? targetClassId : student.class_id,
+        action: action,
+        academic_year: currentYear,
+        promoted_by: user?.id,
+      }));
 
-      if (error) throw error;
+      const { error: historyError } = await supabase
+        .from("promotion_history")
+        .insert(historyRecords);
+
+      if (historyError) throw historyError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["promotion-history"] });
       toast.success(
         action === "promote"
           ? `${selectedStudents.length} student(s) promoted successfully`

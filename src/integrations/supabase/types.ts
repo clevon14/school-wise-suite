@@ -1205,6 +1205,106 @@ export type Database = {
           },
         ]
       }
+      promotion_history: {
+        Row: {
+          academic_year: string
+          action: string
+          created_at: string
+          from_class_id: string | null
+          id: string
+          notes: string | null
+          promoted_by: string | null
+          student_id: string
+          to_class_id: string | null
+        }
+        Insert: {
+          academic_year: string
+          action?: string
+          created_at?: string
+          from_class_id?: string | null
+          id?: string
+          notes?: string | null
+          promoted_by?: string | null
+          student_id: string
+          to_class_id?: string | null
+        }
+        Update: {
+          academic_year?: string
+          action?: string
+          created_at?: string
+          from_class_id?: string | null
+          id?: string
+          notes?: string | null
+          promoted_by?: string | null
+          student_id?: string
+          to_class_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_history_from_class_id_fkey"
+            columns: ["from_class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "promotion_history_from_class_id_fkey"
+            columns: ["from_class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "promotion_history_from_class_id_fkey"
+            columns: ["from_class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_monthly_fee_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "promotion_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_summary"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "promotion_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_history_to_class_id_fkey"
+            columns: ["to_class_id"]
+            isOneToOne: false
+            referencedRelation: "class_monthly_fee_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "promotion_history_to_class_id_fkey"
+            columns: ["to_class_id"]
+            isOneToOne: false
+            referencedRelation: "class_summary"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "promotion_history_to_class_id_fkey"
+            columns: ["to_class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_answers: {
         Row: {
           answer_text: string | null

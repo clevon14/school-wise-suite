@@ -78,8 +78,11 @@ export function BatchPromoteDialog({ children }: BatchPromoteDialogProps) {
         throw new Error("No active students in the source class");
       }
 
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentYear = new Date().getFullYear().toString();
       const studentIds = sourceStudents.map((s) => s.id);
 
+      // Update all students
       const { error } = await supabase
         .from("students")
         .update({ class_id: targetClassId })
@@ -87,11 +90,28 @@ export function BatchPromoteDialog({ children }: BatchPromoteDialogProps) {
 
       if (error) throw error;
 
+      // Log promotion history for each student
+      const historyRecords = sourceStudents.map((student) => ({
+        student_id: student.id,
+        from_class_id: sourceClassId,
+        to_class_id: targetClassId,
+        action: "promote",
+        academic_year: currentYear,
+        promoted_by: user?.id,
+      }));
+
+      const { error: historyError } = await supabase
+        .from("promotion_history")
+        .insert(historyRecords);
+
+      if (historyError) throw historyError;
+
       return studentIds.length;
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
       queryClient.invalidateQueries({ queryKey: ["students-by-class"] });
+      queryClient.invalidateQueries({ queryKey: ["promotion-history"] });
       toast.success(
         `${count} student(s) promoted from ${sourceClass?.name} ${sourceClass?.section || ""} to ${targetClass?.name} ${targetClass?.section || ""}`
       );

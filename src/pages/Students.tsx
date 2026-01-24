@@ -3,11 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap } from "lucide-react";
+import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap, Users } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
 import { BulkStudentImport } from "@/components/forms/BulkStudentImport";
 import { PromoteStudentsDialog } from "@/components/students/PromoteStudentsDialog";
+import { BatchPromoteDialog } from "@/components/students/BatchPromoteDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -180,8 +181,15 @@ export default function Students() {
             {allStudents?.length ? `${allStudents.length} students total` : "Loading students..."}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <CSVExportButton data={students || []} type="students" />
+          <BatchPromoteDialog>
+            <Button variant="outline">
+              <Users className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Batch Promote</span>
+              <span className="sm:hidden">Batch</span>
+            </Button>
+          </BatchPromoteDialog>
           <BulkStudentImport>
             <Button variant="outline">
               <Upload className="h-4 w-4 mr-2" />

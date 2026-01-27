@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.send-absence-sms]
 verify_jwt = true
+
+[functions.create-teacher]
+verify_jwt = false

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { 
   Home, 
   Users, 
@@ -33,7 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const menuItems = [
+const adminMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Reports", url: "/reports", icon: BarChart3 },
   { title: "Security", url: "/admin/security", icon: Shield },
@@ -54,10 +55,48 @@ const menuItems = [
   { title: "Parent Portal", url: "/parent", icon: Users },
 ];
 
+const teacherMenuItems = [
+  { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Students", url: "/students", icon: GraduationCap },
+  { title: "Attendance", url: "/attendance", icon: ClipboardCheck },
+  { title: "Classes", url: "/classes", icon: BookOpen },
+  { title: "Subjects", url: "/subjects", icon: FileText },
+  { title: "Report Cards", url: "/report-cards", icon: Award },
+  { title: "Timetable", url: "/timetable", icon: Calendar },
+  { title: "Syllabus", url: "/syllabus", icon: BookOpen },
+];
+
 export function AppSidebar() {
   const { open, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: adminRole } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+          
+          setIsAdmin(!!adminRole);
+        }
+      } catch (error) {
+        console.error("Error checking role:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkUserRole();
+  }, []);
+
+  const menuItems = isAdmin ? adminMenuItems : teacherMenuItems;
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();

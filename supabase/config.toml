@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.create-teacher]
 verify_jwt = false
+
+[functions.scan-admission-form]
+verify_jwt = false

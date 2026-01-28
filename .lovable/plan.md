@@ -1,135 +1,156 @@
 
-# Handwritten Form Scanner for Student Admission
+# Printable PDF Admission Form Template
 
 ## Overview
-Create a feature that allows staff to upload a photo/scan of a handwritten admission form, use AI vision to extract the data, and automatically populate the digital admission form.
+Create a professional, printable admission form template that parents can fill out by hand. The form will be designed to match the fields expected by the AI scanner for optimal data extraction.
 
-## How It Works
+## What Will Be Created
+
+A new page/component that generates a professionally styled, printer-friendly admission form with:
+- Holy Cross School branding and logo
+- All required student information fields matching the digital form
+- Clear section headers and organized layout
+- Print-optimized CSS for clean output
+- Download button accessible from the Students page
+
+## Form Sections (Matching Scanner Fields)
 
 ```text
-+-------------------+     +------------------+     +-------------------+
-|  Upload Photo/    | --> | AI Vision        | --> | Pre-filled Form   |
-|  Scan of Form     |     | Extracts Data    |     | Ready for Review  |
-+-------------------+     +------------------+     +-------------------+
-        |                        |                         |
-   Camera/Gallery         Gemini 2.5 Pro            Staff reviews &
-   or File Upload         reads handwriting          submits
++--------------------------------------------------+
+|              HOLY CROSS SCHOOL                    |
+|        STUDENT ADMISSION FORM 2024-25             |
++--------------------------------------------------+
+|                                                  |
+|  SECTION A: STUDENT INFORMATION                  |
+|  +-----------------+  +------------------------+ |
+|  | Photo Box       |  | Name, DOB, Gender      | |
+|  | (Passport Size) |  | PEN, Aadhar, Admission | |
+|  +-----------------+  | Place, Village, Taluka | |
+|                       +------------------------+ |
++--------------------------------------------------+
+|  SECTION B: FATHER'S DETAILS                     |
+|  Name | Living | Aadhar | Occupation | Phone     |
++--------------------------------------------------+
+|  SECTION C: MOTHER'S DETAILS                     |
+|  Name | Living | Aadhar | Occupation | Phone     |
++--------------------------------------------------+
+|  SECTION D: FAMILY INFORMATION                   |
+|  Income | Address | Nationality | Religion       |
+|  Caste | Category | Mother Tongue | Siblings     |
++--------------------------------------------------+
+|  SECTION E: PREVIOUS SCHOOL DETAILS              |
+|  School Name | Standards | Leaving Date | SLC    |
++--------------------------------------------------+
+|  SECTION F: ADMISSION DETAILS                    |
+|  Class | Standard | Medium                       |
++--------------------------------------------------+
+|  DECLARATION & SIGNATURES                        |
+|  Parent Signature | Date | Office Use Only       |
++--------------------------------------------------+
 ```
-
-## User Experience
-
-1. **Open Add Student Dialog** - A new "Scan Form" button appears alongside the manual entry option
-2. **Upload Image** - User takes a photo or uploads a scanned image of the handwritten form
-3. **AI Processing** - System analyzes the image and extracts all readable fields
-4. **Review & Edit** - Form fields are pre-populated; user reviews and corrects any misread values
-5. **Submit** - User submits the form as normal
-
-## Fields to Extract
-
-The AI will attempt to extract these fields from the handwritten form:
-
-**Student Info**: Name, Admission Number, PEN Number, Aadhar, Gender, Date of Birth, Place of Birth, Village, Taluka, District
-
-**Father's Details**: Name, Living status, Aadhar, Occupation, Qualification, Phone
-
-**Mother's Details**: Name, Living status, Aadhar, Occupation, Qualification, Phone
-
-**Family Info**: Annual Income, Guardian Address, Phone, Email, Nationality, Religion, Caste, Category, Mother Tongue, Languages, Siblings count
-
-**Previous School**: School name, Standards attended, Leaving date, SLC details
-
-**Admission Details**: Class, Standard, Medium
-
----
 
 ## Technical Implementation
 
-### 1. New Edge Function: `scan-admission-form`
+### 1. New Component: PrintableAdmissionForm
 
-Creates a new Supabase Edge Function that:
-- Accepts a base64-encoded image of the handwritten form
-- Sends it to Gemini 2.5 Pro with vision capabilities
-- Uses a structured prompt to extract form fields
-- Returns JSON with extracted field values
+**Location**: `src/components/forms/PrintableAdmissionForm.tsx`
 
-**Location**: `supabase/functions/scan-admission-form/index.ts`
+Creates a React component that renders a print-optimized admission form:
+- Uses CSS `@media print` rules for clean printing
+- Includes school branding header with logo placeholder
+- Renders all form fields as empty boxes with labels
+- Includes helpful instructions for parents
+- Has a "Print Form" button (hidden when printing)
 
-**Key Features**:
-- Uses Lovable AI Gateway (already configured)
-- Leverages Gemini's multimodal capabilities for handwriting recognition
-- Returns structured JSON matching the form schema
-- Includes confidence indicators for uncertain fields
+Key features:
+- Responsive layout that works on screen and print
+- Clear field labels matching what the AI scanner expects
+- Checkbox options for Yes/No fields (Living status, SLC produced)
+- Adequate space for handwritten entries
+- Photo attachment box with guidelines
 
-### 2. Frontend Component: `FormScanner`
+### 2. Update Students Page
 
-Creates a new React component for the scanning interface:
-- Camera capture option (for mobile devices)
-- File upload option (for scanned documents)
-- Loading state with progress indicator
-- Preview of uploaded image
-- Error handling for poor quality images
+**Location**: `src/pages/Students.tsx`
 
-**Location**: `src/components/forms/FormScanner.tsx`
+Add a "Download Blank Form" button to the Students page header that opens the printable form in a new dialog or triggers the print dialog.
 
-### 3. Update AddStudentDialog
+### 3. Print-Specific Styles
 
-Modifies the existing student admission form:
-- Adds "Scan Handwritten Form" button at the top
-- Integrates FormScanner component
-- Populates form fields with extracted data
-- Highlights fields that need review (low confidence)
+The component will include embedded print styles:
+- Remove shadows and backgrounds for cleaner printing
+- Ensure proper page breaks between sections
+- Optimize font sizes for readability
+- Include dotted/solid lines for fill-in fields
 
-### 4. Supabase Config Update
+## Implementation Details
 
-Adds the new edge function to the config:
+### PrintableAdmissionForm Component Structure
 
-**Location**: `supabase/config.toml`
-
-```toml
-[functions.scan-admission-form]
-verify_jwt = false
+```text
+Component Features:
+- Header with school name and form title
+- Instructions section for parents
+- 6 main sections with labeled input boxes
+- Photo attachment area (3.5cm x 4.5cm guideline)
+- Declaration text with signature lines
+- Office use section (admission date, fee receipt, etc.)
+- Print button (auto-hides when printing)
 ```
 
----
+### Form Field Design
 
-## AI Prompt Strategy
+Each field will be rendered as:
+- Clear label text (e.g., "Student Name (First)")
+- Empty box or line for handwritten entry
+- Sufficient height (~40px) for legible writing
+- Light gray borders for visibility
 
-The edge function will use a detailed prompt instructing the AI to:
+### Access Points
 
-1. Identify and read all handwritten text in the image
-2. Map values to specific form fields
-3. Handle common handwriting variations
-4. Return null for unreadable/missing fields
-5. Provide confidence scores where uncertain
-6. Parse dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, etc.)
-
----
+Users can access the printable form via:
+1. "Download Form" button on Students page
+2. Within AddStudentDialog near the "Scan Form" option
 
 ## Files to Create/Modify
 
 | File | Action | Purpose |
 |------|--------|---------|
-| `supabase/functions/scan-admission-form/index.ts` | Create | AI vision processing |
-| `src/components/forms/FormScanner.tsx` | Create | Image upload/capture UI |
-| `src/components/forms/AddStudentDialog.tsx` | Modify | Add scan button, integrate scanner |
-| `supabase/config.toml` | Modify | Register new function |
+| `src/components/forms/PrintableAdmissionForm.tsx` | Create | Main printable form component |
+| `src/pages/Students.tsx` | Modify | Add "Download Form" button |
 
----
+## Design Considerations
 
-## Limitations & Considerations
+### Optimized for AI Scanning
+- Field labels match exactly what the scanner expects
+- Clear section demarcation helps AI identify regions
+- Standardized date format instruction (DD/MM/YYYY)
+- Gender as checkboxes (Male/Female/Other)
 
-1. **Handwriting Quality**: Very poor handwriting may result in errors - users should always review
-2. **Form Layout**: Works best with the standard Holy Cross admission form layout
-3. **Image Quality**: Better results with clear, well-lit photos/scans
-4. **Processing Time**: May take 5-10 seconds depending on image size
-5. **API Costs**: Each scan uses AI credits (one API call per form)
+### Print Quality
+- A4 paper size optimized
+- 12pt+ fonts for readability
+- High contrast black text on white
+- No color dependencies
 
----
+### Accessibility
+- Clear instructions in simple language
+- Adequate space for large handwriting
+- Multilingual considerations (English primary)
+
+## User Flow
+
+1. Admin navigates to Students page
+2. Clicks "Download Form" button
+3. Printable form opens in dialog/new tab
+4. Clicks "Print" to print physical copies
+5. Distributes to parents for filling
+6. Collects filled forms
+7. Uses "Scan Form" feature to digitize
 
 ## Future Enhancements
 
-- Support for multiple form templates
-- Batch scanning of multiple forms
-- Confidence highlighting (color-code uncertain fields)
-- History of scanned forms for audit
-- Support for scanning teacher application forms
+- Add school logo image upload capability
+- Multiple language versions (Hindi, Marathi, etc.)
+- Editable template in admin settings
+- QR code linking to online submission portal

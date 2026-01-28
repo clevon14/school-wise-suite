@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload } from "lucide-react";
+import { Upload, ScanLine } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { FormScanner } from "./FormScanner";
 
 const studentSchema = z.object({
   // Basic Information
@@ -132,6 +133,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
   const [selectedFees, setSelectedFees] = useState<string[]>([]);
   const [feeAmounts, setFeeAmounts] = useState<Record<string, number>>({});
   const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
+  const [showScanner, setShowScanner] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: classes } = useQuery({
@@ -390,6 +392,93 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
     createStudent.mutate(values);
   };
 
+  // Handle data extracted from form scanner
+  const handleScannedData = (data: any) => {
+    setShowScanner(false);
+    
+    // Map extracted data to form fields
+    if (data.student) {
+      if (data.student.first_name) form.setValue("first_name", data.student.first_name);
+      if (data.student.last_name) form.setValue("last_name", data.student.last_name);
+      if (data.student.admission_number) form.setValue("admission_number", data.student.admission_number);
+      if (data.student.pen_number) form.setValue("pen_number", data.student.pen_number);
+      if (data.student.aadhar_number) form.setValue("aadhar_number", data.student.aadhar_number);
+      if (data.student.gender) form.setValue("gender", data.student.gender);
+      if (data.student.date_of_birth) form.setValue("date_of_birth", data.student.date_of_birth);
+      if (data.student.place_of_birth) form.setValue("place_of_birth", data.student.place_of_birth);
+      if (data.student.village) form.setValue("village", data.student.village);
+      if (data.student.taluka) form.setValue("taluka", data.student.taluka);
+      if (data.student.district) form.setValue("district", data.student.district);
+    }
+
+    if (data.father) {
+      if (data.father.name) form.setValue("father_name", data.father.name);
+      if (data.father.living !== null) form.setValue("father_living", data.father.living);
+      if (data.father.aadhar) form.setValue("father_aadhar", data.father.aadhar);
+      if (data.father.occupation) form.setValue("father_occupation", data.father.occupation);
+      if (data.father.qualification) form.setValue("father_qualification", data.father.qualification);
+      if (data.father.phone) form.setValue("father_phone", data.father.phone);
+    }
+
+    if (data.mother) {
+      if (data.mother.name) form.setValue("mother_name", data.mother.name);
+      if (data.mother.living !== null) form.setValue("mother_living", data.mother.living);
+      if (data.mother.aadhar) form.setValue("mother_aadhar", data.mother.aadhar);
+      if (data.mother.occupation) form.setValue("mother_occupation", data.mother.occupation);
+      if (data.mother.qualification) form.setValue("mother_qualification", data.mother.qualification);
+      if (data.mother.phone) form.setValue("mother_phone", data.mother.phone);
+    }
+
+    if (data.family) {
+      if (data.family.annual_income) form.setValue("annual_income", data.family.annual_income);
+      if (data.family.guardian_address) form.setValue("guardian_address", data.family.guardian_address);
+      if (data.family.parent_phone) form.setValue("parent_phone", data.family.parent_phone);
+      if (data.family.parent_email) form.setValue("parent_email", data.family.parent_email);
+      if (data.family.nationality) form.setValue("nationality", data.family.nationality);
+      if (data.family.religion) form.setValue("religion", data.family.religion);
+      if (data.family.caste) form.setValue("caste", data.family.caste);
+      if (data.family.category) form.setValue("category", data.family.category);
+      if (data.family.mother_tongue) form.setValue("mother_tongue", data.family.mother_tongue);
+      if (data.family.other_languages) form.setValue("other_languages", data.family.other_languages);
+      if (data.family.elder_brothers !== null) form.setValue("elder_brothers", data.family.elder_brothers);
+      if (data.family.younger_brothers !== null) form.setValue("younger_brothers", data.family.younger_brothers);
+      if (data.family.elder_sisters !== null) form.setValue("elder_sisters", data.family.elder_sisters);
+      if (data.family.younger_sisters !== null) form.setValue("younger_sisters", data.family.younger_sisters);
+    }
+
+    if (data.previous_school) {
+      if (data.previous_school.name) form.setValue("last_school_name", data.previous_school.name);
+      if (data.previous_school.standards_attended) form.setValue("last_school_standards", data.previous_school.standards_attended);
+      if (data.previous_school.leaving_date) form.setValue("last_school_leaving_date", data.previous_school.leaving_date);
+      if (data.previous_school.slc_produced !== null) form.setValue("slc_produced", data.previous_school.slc_produced);
+      if (data.previous_school.slc_date) form.setValue("slc_date", data.previous_school.slc_date);
+    }
+
+    if (data.admission) {
+      if (data.admission.standard) form.setValue("admission_standard", data.admission.standard);
+      if (data.admission.medium) form.setValue("admission_medium", data.admission.medium);
+    }
+
+    // Show confidence notification
+    if (data.confidence) {
+      const confidenceLevel = data.confidence.overall;
+      if (confidenceLevel === "low") {
+        toast.warning("Low confidence extraction - please review all fields carefully", {
+          description: data.confidence.notes,
+          duration: 6000,
+        });
+      } else if (confidenceLevel === "medium") {
+        toast.info("Form data extracted - please verify the information", {
+          duration: 4000,
+        });
+      } else {
+        toast.success("Form data extracted successfully", {
+          duration: 3000,
+        });
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -403,11 +492,32 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
           <h3 className="text-lg font-bold mt-2 text-foreground">APPLICATION FOR ADMISSION</h3>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
-            
-            {/* Section 1: Basic Student Information */}
-            <Card>
+        {showScanner ? (
+          <div className="py-4">
+            <FormScanner 
+              onDataExtracted={handleScannedData} 
+              onClose={() => setShowScanner(false)} 
+            />
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+              
+              {/* Scan Form Button */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowScanner(true)}
+                  className="gap-2 border-dashed border-2"
+                >
+                  <ScanLine className="h-4 w-4" />
+                  Scan Handwritten Form
+                </Button>
+              </div>
+
+              {/* Section 1: Basic Student Information */}
+              <Card>
               <CardHeader className="py-3">
                 <CardTitle className="text-base">Student Information</CardTitle>
               </CardHeader>
@@ -1272,6 +1382,7 @@ export function AddStudentDialog({ children }: { children: React.ReactNode }) {
             </div>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

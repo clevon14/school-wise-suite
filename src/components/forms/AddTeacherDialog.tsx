@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload } from "lucide-react";
+import { Upload, ScanLine } from "lucide-react";
+import { StaffFormScanner, ExtractedStaffData } from "./StaffFormScanner";
 import {
   Dialog,
   DialogContent,
@@ -89,6 +90,7 @@ type TeacherFormValues = z.infer<typeof teacherSchema>;
 
 export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -244,6 +246,58 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
     createTeacher.mutate(values);
   };
 
+  const handleScannedData = (data: ExtractedStaffData) => {
+    // Map scanned data to form fields
+    if (data.basic) {
+      if (data.basic.employee_number) form.setValue("employee_number", data.basic.employee_number);
+      if (data.basic.first_name) form.setValue("first_name", data.basic.first_name);
+      if (data.basic.last_name) form.setValue("last_name", data.basic.last_name);
+      if (data.basic.father_name) form.setValue("father_name", data.basic.father_name);
+      if (data.basic.mother_name) form.setValue("mother_name", data.basic.mother_name);
+      if (data.basic.email) form.setValue("email", data.basic.email);
+      if (data.basic.gender) form.setValue("gender", data.basic.gender);
+      if (data.basic.date_of_birth) form.setValue("date_of_birth", data.basic.date_of_birth);
+      if (data.basic.hire_date) form.setValue("hire_date", data.basic.hire_date);
+      if (data.basic.phone) form.setValue("phone", data.basic.phone);
+      if (data.basic.emergency_contact_number) form.setValue("emergency_contact_number", data.basic.emergency_contact_number);
+      if (data.basic.marital_status) form.setValue("marital_status", data.basic.marital_status);
+      if (data.basic.role) form.setValue("role", data.basic.role);
+      if (data.basic.designation) form.setValue("designation", data.basic.designation);
+      if (data.basic.department) form.setValue("department", data.basic.department);
+    }
+    if (data.address) {
+      if (data.address.current_address) form.setValue("address", data.address.current_address);
+      if (data.address.permanent_address) form.setValue("permanent_address", data.address.permanent_address);
+    }
+    if (data.qualifications) {
+      if (data.qualifications.qualification) form.setValue("qualification", data.qualifications.qualification);
+      if (data.qualifications.work_experience) form.setValue("work_experience", data.qualifications.work_experience);
+      if (data.qualifications.pan_number) form.setValue("pan_number", data.qualifications.pan_number);
+      if (data.qualifications.note) form.setValue("note", data.qualifications.note);
+    }
+    if (data.payroll) {
+      if (data.payroll.epf_number) form.setValue("epf_number", data.payroll.epf_number);
+      if (data.payroll.basic_salary) form.setValue("basic_salary", String(data.payroll.basic_salary));
+      if (data.payroll.contract_type) form.setValue("contract_type", data.payroll.contract_type);
+      if (data.payroll.work_shift) form.setValue("work_shift", data.payroll.work_shift);
+      if (data.payroll.work_location) form.setValue("work_location", data.payroll.work_location);
+    }
+    if (data.leaves) {
+      if (data.leaves.medical_leave != null) form.setValue("medical_leave", String(data.leaves.medical_leave));
+      if (data.leaves.casual_leave != null) form.setValue("casual_leave", String(data.leaves.casual_leave));
+      if (data.leaves.maternity_leave != null) form.setValue("maternity_leave", String(data.leaves.maternity_leave));
+      if (data.leaves.sick_leave != null) form.setValue("sick_leave", String(data.leaves.sick_leave));
+    }
+    if (data.bank) {
+      if (data.bank.account_title) form.setValue("bank_account_title", data.bank.account_title);
+      if (data.bank.account_number) form.setValue("bank_account_number", data.bank.account_number);
+      if (data.bank.bank_name) form.setValue("bank_name", data.bank.bank_name);
+      if (data.bank.ifsc_code) form.setValue("ifsc_code", data.bank.ifsc_code);
+      if (data.bank.branch_name) form.setValue("bank_branch_name", data.bank.branch_name);
+    }
+    setShowScanner(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -254,6 +308,25 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
             Enter comprehensive staff details including payroll, leaves, and documents
           </DialogDescription>
         </DialogHeader>
+
+        {showScanner ? (
+          <StaffFormScanner
+            onDataExtracted={handleScannedData}
+            onClose={() => setShowScanner(false)}
+          />
+        ) : (
+          <>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowScanner(true)}
+                className="gap-2"
+              >
+                <ScanLine className="h-4 w-4" />
+                Scan Form
+              </Button>
+            </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -1023,6 +1096,8 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
             </div>
           </form>
         </Form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

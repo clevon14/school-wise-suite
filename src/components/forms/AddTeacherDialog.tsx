@@ -128,52 +128,52 @@ export function AddTeacherDialog({ children }: { children: React.ReactNode }) {
           photo_url = publicUrl;
         }
 
-        // Upload resume
+        // Upload resume to private documents bucket
         if (values.resume) {
           const fileExt = values.resume.name.split('.').pop();
           const fileName = `teachers/documents/resume-${Date.now()}.${fileExt}`;
           const { error: uploadError } = await supabase.storage
-            .from('photos')
+            .from('documents')
             .upload(fileName, values.resume);
           if (uploadError) throw uploadError;
-          const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
-          resume_url = publicUrl;
+          const { data: signedUrlData } = await supabase.storage.from('documents').createSignedUrl(fileName, 31536000);
+          resume_url = signedUrlData?.signedUrl || '';
         }
 
-        // Upload joining letter
+        // Upload joining letter to private documents bucket
         if (values.joining_letter) {
           const fileExt = values.joining_letter.name.split('.').pop();
           const fileName = `teachers/documents/joining-${Date.now()}.${fileExt}`;
           const { error: uploadError } = await supabase.storage
-            .from('photos')
+            .from('documents')
             .upload(fileName, values.joining_letter);
           if (uploadError) throw uploadError;
-          const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
-          joining_letter_url = publicUrl;
+          const { data: signedUrlData } = await supabase.storage.from('documents').createSignedUrl(fileName, 31536000);
+          joining_letter_url = signedUrlData?.signedUrl || '';
         }
 
-        // Upload resignation letter
+        // Upload resignation letter to private documents bucket
         if (values.resignation_letter) {
           const fileExt = values.resignation_letter.name.split('.').pop();
           const fileName = `teachers/documents/resignation-${Date.now()}.${fileExt}`;
           const { error: uploadError } = await supabase.storage
-            .from('photos')
+            .from('documents')
             .upload(fileName, values.resignation_letter);
           if (uploadError) throw uploadError;
-          const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
-          resignation_letter_url = publicUrl;
+          const { data: signedUrlData } = await supabase.storage.from('documents').createSignedUrl(fileName, 31536000);
+          resignation_letter_url = signedUrlData?.signedUrl || '';
         }
 
-        // Upload other documents
+        // Upload other documents to private documents bucket
         if (values.other_documents) {
           const fileExt = values.other_documents.name.split('.').pop();
           const fileName = `teachers/documents/other-${Date.now()}.${fileExt}`;
           const { error: uploadError } = await supabase.storage
-            .from('photos')
+            .from('documents')
             .upload(fileName, values.other_documents);
           if (uploadError) throw uploadError;
-          const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
-          other_documents_url = publicUrl;
+          const { data: signedUrlData } = await supabase.storage.from('documents').createSignedUrl(fileName, 31536000);
+          other_documents_url = signedUrlData?.signedUrl || '';
         }
 
         const { data, error } = await supabase

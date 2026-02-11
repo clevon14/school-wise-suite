@@ -362,7 +362,7 @@ export default function Fees() {
                 <label className="text-sm font-medium">
                   Class <span className="text-destructive">*</span>
                 </label>
-                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <Select value={selectedClass} onValueChange={(val) => { setSelectedClass(val); setSearchKeyword(""); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
@@ -408,7 +408,6 @@ export default function Fees() {
                   placeholder="Search By Student Name, Roll Number, Enroll Number, National Id, Local Id Etc."
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
               </div>
             </div>
@@ -418,83 +417,61 @@ export default function Fees() {
                 <Search className="h-4 w-4" />
                 Search
               </Button>
-              {selectedStudents.length > 0 && (
-                <Button
-                  onClick={() => collectFeesMutation.mutate()}
-                  disabled={collectFeesMutation.isPending}
-                  variant="default"
-                >
-                  {collectFeesMutation.isPending
-                    ? "Collecting..."
-                    : `Collect Fees (${selectedStudents.length})`}
-                </Button>
-              )}
             </div>
           </div>
 
           {/* Student List */}
           <div className="bg-card border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Student List</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Student List</h2>
+            </div>
 
-            {filteredStudents.length > 0 ? (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox
-                          checked={
-                            selectedStudents.length === filteredStudents.length &&
-                            filteredStudents.length > 0
-                          }
-                          onCheckedChange={toggleSelectAll}
-                        />
-                      </TableHead>
-                      <TableHead>Class</TableHead>
-                      <TableHead>Section</TableHead>
-                      <TableHead>Admission No</TableHead>
-                      <TableHead>Student Name</TableHead>
-                      <TableHead>Father Name</TableHead>
-                      <TableHead>Date Of Birth</TableHead>
-                      <TableHead>Mobile No.</TableHead>
-                      <TableHead>Pending Fees</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredStudents.map((student: any) => {
-                      const pendingFees = student.fee_assignments?.filter(
-                        (f: any) => f.status === "pending"
-                      );
-                      const totalPending = pendingFees?.reduce(
-                        (sum: number, f: any) => sum + (f.amount || 0),
-                        0
-                      );
+            {(() => {
+              // Auto-filter students based on selected class + section + keyword
+              const displayStudents = students?.filter((s: any) => {
+                if (!selectedClass) return false;
+                const matchesSection = !selectedSection || s.class?.section === selectedSection;
+                const keyword = searchKeyword.toLowerCase();
+                const matchesKeyword = !searchKeyword.trim() ||
+                  s.first_name?.toLowerCase().includes(keyword) ||
+                  s.last_name?.toLowerCase().includes(keyword) ||
+                  s.admission_number?.toLowerCase().includes(keyword) ||
+                  s.roll_number?.toLowerCase().includes(keyword) ||
+                  s.father_name?.toLowerCase().includes(keyword);
+                return matchesSection && matchesKeyword;
+              }) || [];
 
-                      return (
+              return displayStudents.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Class</TableHead>
+                        <TableHead>Section</TableHead>
+                        <TableHead>Admission No</TableHead>
+                        <TableHead>Student Name</TableHead>
+                        <TableHead>Father Name</TableHead>
+                        <TableHead>Date Of Birth</TableHead>
+                        <TableHead>Mobile No.</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {displayStudents.map((student: any) => (
                         <TableRow key={student.id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedStudents.includes(student.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedStudents([
-                                    ...selectedStudents,
-                                    student.id,
-                                  ]);
-                                } else {
-                                  setSelectedStudents(
-                                    selectedStudents.filter((id) => id !== student.id)
-                                  );
-                                }
-                              }}
-                            />
-                          </TableCell>
                           <TableCell>{student.class?.name}</TableCell>
                           <TableCell>{student.class?.section || "-"}</TableCell>
                           <TableCell>{student.admission_number}</TableCell>
                           <TableCell>
-                            {student.first_name} {student.last_name}
+                            <button
+                              className="text-primary hover:underline font-medium text-left"
+                              onClick={() => {
+                                setSelectedStudentForView(student);
+                                setShowStudentDialog(true);
+                              }}
+                            >
+                              {student.first_name} {student.last_name}
+                            </button>
                           </TableCell>
                           <TableCell>{student.father_name || "-"}</TableCell>
                           <TableCell>
@@ -504,58 +481,47 @@ export default function Fees() {
                           </TableCell>
                           <TableCell>{student.parent_phone || "-"}</TableCell>
                           <TableCell>
-                            {totalPending > 0 ? (
-                              <span className="font-semibold text-destructive">
-                                ₹{totalPending.toLocaleString()}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
                             <Button
-                              variant="ghost"
                               size="sm"
                               onClick={() => {
                                 setSelectedStudentForView(student);
                                 setShowStudentDialog(true);
                               }}
                             >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
+                              Collect Fees
                             </Button>
                           </TableCell>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                
-                <div className="px-4 py-3 border-t bg-muted/50 text-sm text-muted-foreground">
-                  Records: {filteredStudents.length} of {students?.length || 0}
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  <div className="px-4 py-3 border-t bg-muted/50 text-sm text-muted-foreground">
+                    Records: {displayStudents.length} of {students?.length || 0}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <svg
-                  className="w-24 h-24 mb-4 opacity-50"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <p className="text-lg font-medium">No data available in table</p>
-                <p className="text-sm mt-1">
-                  ← Add new record or search with different criteria.
-                </p>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <svg
+                    className="w-24 h-24 mb-4 opacity-50"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <p className="text-lg font-medium">No data available in table</p>
+                  <p className="text-sm mt-1">
+                    {!selectedClass ? "Select a class to view students." : "No students found with the current criteria."}
+                  </p>
+                </div>
+              );
+            })()}
           </div>
         </TabsContent>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Home, 
   Users, 
@@ -15,10 +16,11 @@ import {
   LogOut,
   BarChart3,
   Shield,
-  UserPlus
+  UserPlus,
+  ChevronDown
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -30,8 +32,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const adminMenuItems = [
@@ -72,6 +74,19 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [classesOpen, setClassesOpen] = useState(false);
+
+  const { data: classes } = useQuery({
+    queryKey: ["classes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("classes")
+        .select("id, name, section")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -146,6 +161,35 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Class-wise navigation */}
+        {open && classes && classes.length > 0 && (
+          <SidebarGroup>
+            <Collapsible open={classesOpen} onOpenChange={setClassesOpen}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                <span>Classes</span>
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${classesOpen ? "rotate-180" : ""}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {classes.map((cls) => (
+                      <SidebarMenuItem key={cls.id}>
+                        <SidebarMenuButton
+                          onClick={() => handleNavigate(`/students?class=${cls.id}`)}
+                          className="min-h-[36px]"
+                        >
+                          <BookOpen className="h-3.5 w-3.5" />
+                          <span className="text-sm">{cls.name} {cls.section || ""}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup className="mt-auto border-t">
           <SidebarGroupContent>

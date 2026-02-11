@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +46,7 @@ import { exportToCSV } from "@/lib/csv-export-client";
 import { toast } from "sonner";
 
 export default function Students() {
+  const [searchParams] = useSearchParams();
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
@@ -54,6 +56,14 @@ export default function Students() {
   const [activeTab, setActiveTab] = useState("active");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const queryClient = useQueryClient();
+
+  // Sync class filter from URL query param
+  useEffect(() => {
+    const classFromUrl = searchParams.get("class");
+    if (classFromUrl) {
+      setSelectedClass(classFromUrl);
+    }
+  }, [searchParams]);
   const { data: allStudents, isLoading } = useQuery({
     queryKey: ["students"],
     queryFn: async () => {

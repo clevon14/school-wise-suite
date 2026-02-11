@@ -4,11 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Download, Search, Eye, DollarSign } from "lucide-react";
-import { CollectTuitionFeeDialog } from "@/components/fees/CollectTuitionFeeDialog";
-import { CollectBusFeeDialog } from "@/components/fees/CollectBusFeeDialog";
+import { Download, Search, Eye, DollarSign, CreditCard, Receipt, AlertCircle, Settings, Tag, Percent, ArrowRightLeft, Bell } from "lucide-react";
 import { SimpleTuitionSetup } from "@/components/fees/SimpleTuitionSetup";
 import { SimpleBusSetup } from "@/components/fees/SimpleBusSetup";
+import { SearchFeesPayment } from "@/components/fees/SearchFeesPayment";
+import { SearchDueFees } from "@/components/fees/SearchDueFees";
+import { FeesMaster } from "@/components/fees/FeesMaster";
+import { FeesDiscount } from "@/components/fees/FeesDiscount";
+import { FeesReminder } from "@/components/fees/FeesReminder";
 import { exportFeesCSV } from "@/lib/fee-csv-export";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -39,6 +42,7 @@ import {
 export default function Fees() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("collect");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -87,7 +91,6 @@ export default function Fees() {
       const { data, error } = await query;
       if (error) throw error;
       
-      // Filter by search keyword on client side for better flexibility
       if (searchKeyword.trim() && data) {
         const keyword = searchKeyword.toLowerCase();
         return data.filter(
@@ -159,7 +162,6 @@ export default function Fees() {
 
   const recordPaymentMutation = useMutation({
     mutationFn: async ({ studentId, amount, feeAssignmentId }: { studentId: string, amount: number, feeAssignmentId: string }) => {
-      // Insert payment record
       const receiptNumber = `REC-${Date.now()}`;
       const { error: paymentError } = await supabase
         .from("payments")
@@ -173,7 +175,6 @@ export default function Fees() {
 
       if (paymentError) throw paymentError;
 
-      // Update fee assignment status to paid
       const { error: updateError } = await supabase
         .from("fee_assignments")
         .update({ status: "paid" })
@@ -184,7 +185,6 @@ export default function Fees() {
       return studentId;
     },
     onSuccess: async (studentId) => {
-      // Invalidate all fee-related queries including Dashboard queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["students-for-fees"] }),
         queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] }),
@@ -193,7 +193,6 @@ export default function Fees() {
         queryClient.invalidateQueries({ queryKey: ["income-breakdown"] }),
       ]);
       
-      // Refetch the current student's data
       const { data } = await supabase
         .from("students")
         .select(`
@@ -242,7 +241,6 @@ export default function Fees() {
         for (const fee of pendingFees) {
           const receiptNumber = `REC-${Date.now()}-${fee.id}`;
           
-          // Insert payment record
           const { error: paymentError } = await supabase
             .from("payments")
             .insert({
@@ -255,7 +253,6 @@ export default function Fees() {
 
           if (paymentError) throw paymentError;
 
-          // Update fee assignment status
           const { error } = await supabase
             .from("fee_assignments")
             .update({ status: "paid" })
@@ -267,7 +264,6 @@ export default function Fees() {
       await Promise.all(updates);
     },
     onSuccess: async () => {
-      // Invalidate all fee-related queries including Dashboard queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["students-for-fees"] }),
         queryClient.invalidateQueries({ queryKey: ["allFeeRecords"] }),
@@ -314,14 +310,24 @@ export default function Fees() {
     }
   };
 
+  const tabItems = [
+    { value: "collect", label: "Collect Fees", icon: CreditCard },
+    { value: "search-payment", label: "Search Fees Payment", icon: Receipt },
+    { value: "search-due", label: "Search Due Fees", icon: AlertCircle },
+    { value: "fees-master", label: "Fees Master", icon: Settings },
+    { value: "fees-setup", label: "Fees Setup", icon: Tag },
+    { value: "fees-discount", label: "Fees Discount", icon: Percent },
+    { value: "fees-reminder", label: "Fees Reminder", icon: Bell },
+  ];
+
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Fee Collection</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Fees Collection</h1>
           <p className="text-muted-foreground mt-1">
-            Search and collect fees from students
+            Manage all fee-related operations
           </p>
         </div>
         <Button variant="outline" onClick={handleExportCSV} className="gap-2">
@@ -330,224 +336,262 @@ export default function Fees() {
         </Button>
       </div>
 
-      {/* Select Criteria */}
-      <div className="bg-card border rounded-lg p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Select Criteria</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Class <span className="text-destructive">*</span>
-            </label>
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {classes?.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Section</label>
-            <Select value={selectedSection} onValueChange={setSelectedSection}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {classes
-                  ?.find((c: any) => c.id === selectedClass)
-                  ?.section ? (
-                  <SelectItem
-                    value={
-                      classes?.find((c: any) => c.id === selectedClass)?.section
-                    }
-                  >
-                    {classes?.find((c: any) => c.id === selectedClass)?.section}
-                  </SelectItem>
-                ) : (
-                  <SelectItem value="none" disabled>
-                    No section
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Search By Keyword</label>
-            <Input
-              placeholder="Search By Student Name, Roll Number, Enroll Number, National Id, Local Id Etc."
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <Button onClick={handleSearch} className="gap-2">
-            <Search className="h-4 w-4" />
-            Search
-          </Button>
-          {selectedStudents.length > 0 && (
-            <Button
-              onClick={() => collectFeesMutation.mutate()}
-              disabled={collectFeesMutation.isPending}
-              variant="default"
+      {/* Tabbed Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1">
+          {tabItems.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="flex items-center gap-2 text-sm px-4 py-2"
             >
-              {collectFeesMutation.isPending
-                ? "Collecting..."
-                : `Collect Fees (${selectedStudents.length})`}
-            </Button>
-          )}
-        </div>
-      </div>
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {/* Student List */}
-      <div className="bg-card border rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Student List</h2>
-
-        {filteredStudents.length > 0 ? (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={
-                        selectedStudents.length === filteredStudents.length &&
-                        filteredStudents.length > 0
-                      }
-                      onCheckedChange={toggleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Section</TableHead>
-                  <TableHead>Admission No</TableHead>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Father Name</TableHead>
-                  <TableHead>Date Of Birth</TableHead>
-                  <TableHead>Mobile No.</TableHead>
-                  <TableHead>Pending Fees</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student: any) => {
-                  const pendingFees = student.fee_assignments?.filter(
-                    (f: any) => f.status === "pending"
-                  );
-                  const totalPending = pendingFees?.reduce(
-                    (sum: number, f: any) => sum + (f.amount || 0),
-                    0
-                  );
-
-                  return (
-                    <TableRow key={student.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedStudents.includes(student.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedStudents([
-                                ...selectedStudents,
-                                student.id,
-                              ]);
-                            } else {
-                              setSelectedStudents(
-                                selectedStudents.filter((id) => id !== student.id)
-                              );
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{student.class?.name}</TableCell>
-                      <TableCell>{student.class?.section || "-"}</TableCell>
-                      <TableCell>{student.admission_number}</TableCell>
-                      <TableCell>
-                        {student.first_name} {student.last_name}
-                      </TableCell>
-                      <TableCell>{student.father_name || "-"}</TableCell>
-                      <TableCell>
-                        {student.date_of_birth
-                          ? new Date(student.date_of_birth).toLocaleDateString()
-                          : "-"}
-                      </TableCell>
-                      <TableCell>{student.parent_phone || "-"}</TableCell>
-                      <TableCell>
-                        {totalPending > 0 ? (
-                          <span className="font-semibold text-destructive">
-                            ₹{totalPending.toLocaleString()}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStudentForView(student);
-                            setShowStudentDialog(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+        {/* Collect Fees Tab */}
+        <TabsContent value="collect" className="space-y-6 mt-6">
+          {/* Select Criteria */}
+          <div className="bg-card border rounded-lg p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Select Criteria</h2>
             
-            <div className="px-4 py-3 border-t bg-muted/50 text-sm text-muted-foreground">
-              Records: {filteredStudents.length} of {students?.length || 0}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Class <span className="text-destructive">*</span>
+                </label>
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes?.map((cls: any) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Section</label>
+                <Select value={selectedSection} onValueChange={setSelectedSection}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes
+                      ?.find((c: any) => c.id === selectedClass)
+                      ?.section ? (
+                      <SelectItem
+                        value={
+                          classes?.find((c: any) => c.id === selectedClass)?.section
+                        }
+                      >
+                        {classes?.find((c: any) => c.id === selectedClass)?.section}
+                      </SelectItem>
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No section
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search By Keyword</label>
+                <Input
+                  placeholder="Search By Student Name, Roll Number, Enroll Number, National Id, Local Id Etc."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button onClick={handleSearch} className="gap-2">
+                <Search className="h-4 w-4" />
+                Search
+              </Button>
+              {selectedStudents.length > 0 && (
+                <Button
+                  onClick={() => collectFeesMutation.mutate()}
+                  disabled={collectFeesMutation.isPending}
+                  variant="default"
+                >
+                  {collectFeesMutation.isPending
+                    ? "Collecting..."
+                    : `Collect Fees (${selectedStudents.length})`}
+                </Button>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <svg
-              className="w-24 h-24 mb-4 opacity-50"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <p className="text-lg font-medium">No data available in table</p>
-            <p className="text-sm mt-1">
-              ← Add new record or search with different criteria.
-            </p>
+
+          {/* Student List */}
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Student List</h2>
+
+            {filteredStudents.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={
+                            selectedStudents.length === filteredStudents.length &&
+                            filteredStudents.length > 0
+                          }
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>Class</TableHead>
+                      <TableHead>Section</TableHead>
+                      <TableHead>Admission No</TableHead>
+                      <TableHead>Student Name</TableHead>
+                      <TableHead>Father Name</TableHead>
+                      <TableHead>Date Of Birth</TableHead>
+                      <TableHead>Mobile No.</TableHead>
+                      <TableHead>Pending Fees</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((student: any) => {
+                      const pendingFees = student.fee_assignments?.filter(
+                        (f: any) => f.status === "pending"
+                      );
+                      const totalPending = pendingFees?.reduce(
+                        (sum: number, f: any) => sum + (f.amount || 0),
+                        0
+                      );
+
+                      return (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedStudents.includes(student.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedStudents([
+                                    ...selectedStudents,
+                                    student.id,
+                                  ]);
+                                } else {
+                                  setSelectedStudents(
+                                    selectedStudents.filter((id) => id !== student.id)
+                                  );
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>{student.class?.name}</TableCell>
+                          <TableCell>{student.class?.section || "-"}</TableCell>
+                          <TableCell>{student.admission_number}</TableCell>
+                          <TableCell>
+                            {student.first_name} {student.last_name}
+                          </TableCell>
+                          <TableCell>{student.father_name || "-"}</TableCell>
+                          <TableCell>
+                            {student.date_of_birth
+                              ? new Date(student.date_of_birth).toLocaleDateString()
+                              : "-"}
+                          </TableCell>
+                          <TableCell>{student.parent_phone || "-"}</TableCell>
+                          <TableCell>
+                            {totalPending > 0 ? (
+                              <span className="font-semibold text-destructive">
+                                ₹{totalPending.toLocaleString()}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStudentForView(student);
+                                setShowStudentDialog(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                
+                <div className="px-4 py-3 border-t bg-muted/50 text-sm text-muted-foreground">
+                  Records: {filteredStudents.length} of {students?.length || 0}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <svg
+                  className="w-24 h-24 mb-4 opacity-50"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <p className="text-lg font-medium">No data available in table</p>
+                <p className="text-sm mt-1">
+                  ← Add new record or search with different criteria.
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </TabsContent>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="flex gap-3">
-          <CollectTuitionFeeDialog />
-          <CollectBusFeeDialog />
-        </div>
-      </div>
+        {/* Search Fees Payment Tab */}
+        <TabsContent value="search-payment" className="mt-6">
+          <SearchFeesPayment />
+        </TabsContent>
 
-      {/* Setup Sections */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <SimpleTuitionSetup />
-        <SimpleBusSetup />
-      </div>
+        {/* Search Due Fees Tab */}
+        <TabsContent value="search-due" className="mt-6">
+          <SearchDueFees />
+        </TabsContent>
+
+        {/* Fees Master Tab */}
+        <TabsContent value="fees-master" className="mt-6">
+          <FeesMaster />
+        </TabsContent>
+
+        {/* Fees Setup Tab (Tuition + Bus) */}
+        <TabsContent value="fees-setup" className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <SimpleTuitionSetup />
+            <SimpleBusSetup />
+          </div>
+        </TabsContent>
+
+        {/* Fees Discount Tab */}
+        <TabsContent value="fees-discount" className="mt-6">
+          <FeesDiscount />
+        </TabsContent>
+
+        {/* Fees Reminder Tab */}
+        <TabsContent value="fees-reminder" className="mt-6">
+          <FeesReminder />
+        </TabsContent>
+      </Tabs>
 
       {/* Student Fee Details Dialog */}
       <Dialog open={showStudentDialog} onOpenChange={setShowStudentDialog}>

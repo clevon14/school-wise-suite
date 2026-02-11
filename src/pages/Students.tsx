@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap, Users, History, FileText, Pencil } from "lucide-react";
+import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap, Users, History, FileText, Pencil, ClipboardList } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
 import { BulkStudentImport } from "@/components/forms/BulkStudentImport";
@@ -13,6 +13,7 @@ import { BatchPromoteDialog } from "@/components/students/BatchPromoteDialog";
 import { PromotionHistoryDialog } from "@/components/students/PromotionHistoryDialog";
 import { PrintableAdmissionForm } from "@/components/forms/PrintableAdmissionForm";
 import { EditStudentDialog } from "@/components/students/EditStudentDialog";
+import { StudentTestResultsDialog } from "@/components/students/StudentTestResultsDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -53,6 +54,7 @@ export default function Students() {
   const [showClassDeleteDialog, setShowClassDeleteDialog] = useState(false);
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [testResultsStudent, setTestResultsStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("active");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const queryClient = useQueryClient();
@@ -461,6 +463,14 @@ export default function Students() {
                                         <Button
                                           variant="ghost"
                                           size="sm"
+                                          onClick={() => setTestResultsStudent(student)}
+                                          title="Test Results"
+                                        >
+                                          <ClipboardList className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
                                           onClick={async () => {
                                             try {
                                               await exportToCSV({
@@ -572,6 +582,15 @@ export default function Students() {
           student={editingStudent}
           open={!!editingStudent}
           onOpenChange={(open) => { if (!open) setEditingStudent(null); }}
+        />
+      )}
+
+      {testResultsStudent && (
+        <StudentTestResultsDialog
+          studentId={testResultsStudent.id}
+          studentName={`${testResultsStudent.first_name} ${testResultsStudent.last_name}`}
+          open={!!testResultsStudent}
+          onOpenChange={(open) => { if (!open) setTestResultsStudent(null); }}
         />
       )}
     </div>

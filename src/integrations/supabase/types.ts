@@ -197,11 +197,29 @@ export type Database = {
         Row: {
           bus_number: string
           capacity: number
+          conductor_aadhar: string | null
+          conductor_address: string | null
+          conductor_bank_account: string | null
+          conductor_bank_branch: string | null
+          conductor_bank_name: string | null
+          conductor_date_of_birth: string | null
+          conductor_ifsc: string | null
+          conductor_license_number: string | null
           conductor_name: string | null
           conductor_phone: string | null
+          conductor_salary: number | null
           created_at: string | null
+          driver_aadhar: string | null
+          driver_address: string | null
+          driver_bank_account: string | null
+          driver_bank_branch: string | null
+          driver_bank_name: string | null
+          driver_date_of_birth: string | null
+          driver_ifsc: string | null
+          driver_license_number: string | null
           driver_name: string
           driver_phone: string
+          driver_salary: number | null
           id: string
           status: string
           updated_at: string | null
@@ -210,11 +228,29 @@ export type Database = {
         Insert: {
           bus_number: string
           capacity: number
+          conductor_aadhar?: string | null
+          conductor_address?: string | null
+          conductor_bank_account?: string | null
+          conductor_bank_branch?: string | null
+          conductor_bank_name?: string | null
+          conductor_date_of_birth?: string | null
+          conductor_ifsc?: string | null
+          conductor_license_number?: string | null
           conductor_name?: string | null
           conductor_phone?: string | null
+          conductor_salary?: number | null
           created_at?: string | null
+          driver_aadhar?: string | null
+          driver_address?: string | null
+          driver_bank_account?: string | null
+          driver_bank_branch?: string | null
+          driver_bank_name?: string | null
+          driver_date_of_birth?: string | null
+          driver_ifsc?: string | null
+          driver_license_number?: string | null
           driver_name: string
           driver_phone: string
+          driver_salary?: number | null
           id?: string
           status?: string
           updated_at?: string | null
@@ -223,11 +259,29 @@ export type Database = {
         Update: {
           bus_number?: string
           capacity?: number
+          conductor_aadhar?: string | null
+          conductor_address?: string | null
+          conductor_bank_account?: string | null
+          conductor_bank_branch?: string | null
+          conductor_bank_name?: string | null
+          conductor_date_of_birth?: string | null
+          conductor_ifsc?: string | null
+          conductor_license_number?: string | null
           conductor_name?: string | null
           conductor_phone?: string | null
+          conductor_salary?: number | null
           created_at?: string | null
+          driver_aadhar?: string | null
+          driver_address?: string | null
+          driver_bank_account?: string | null
+          driver_bank_branch?: string | null
+          driver_bank_name?: string | null
+          driver_date_of_birth?: string | null
+          driver_ifsc?: string | null
+          driver_license_number?: string | null
           driver_name?: string
           driver_phone?: string
+          driver_salary?: number | null
           id?: string
           status?: string
           updated_at?: string | null

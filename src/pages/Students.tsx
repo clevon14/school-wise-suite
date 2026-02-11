@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap, Users, History, FileText } from "lucide-react";
+import { Plus, User, Download, Trash2, UserX, Filter, Upload, GraduationCap, Users, History, FileText, Pencil } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddStudentDialog } from "@/components/forms/AddStudentDialog";
 import { BulkStudentImport } from "@/components/forms/BulkStudentImport";
@@ -11,6 +11,7 @@ import { PromoteStudentsDialog } from "@/components/students/PromoteStudentsDial
 import { BatchPromoteDialog } from "@/components/students/BatchPromoteDialog";
 import { PromotionHistoryDialog } from "@/components/students/PromotionHistoryDialog";
 import { PrintableAdmissionForm } from "@/components/forms/PrintableAdmissionForm";
+import { EditStudentDialog } from "@/components/students/EditStudentDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -49,6 +50,7 @@ export default function Students() {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showClassDeleteDialog, setShowClassDeleteDialog] = useState(false);
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("active");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const queryClient = useQueryClient();
@@ -401,23 +403,33 @@ export default function Students() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={async () => {
-                                  try {
-                                    await exportToCSV({
-                                      scope: 'student',
-                                      id: student.id,
-                                    });
-                                    toast.success("Student report exported");
-                                  } catch (error) {
-                                    toast.error("Failed to export student report");
-                                  }
-                                }}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEditingStudent(student)}
+                                  title="Edit student"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      await exportToCSV({
+                                        scope: 'student',
+                                        id: student.id,
+                                      });
+                                      toast.success("Student report exported");
+                                    } catch (error) {
+                                      toast.error("Failed to export student report");
+                                    }
+                                  }}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -504,6 +516,14 @@ export default function Students() {
         students={allStudents || []}
         onSuccess={() => setSelectedStudents([])}
       />
+
+      {editingStudent && (
+        <EditStudentDialog
+          student={editingStudent}
+          open={!!editingStudent}
+          onOpenChange={(open) => { if (!open) setEditingStudent(null); }}
+        />
+      )}
     </div>
   );
 }

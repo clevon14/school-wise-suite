@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Upload, FileText } from "lucide-react";
+import { Plus, User, Upload, FileText, Pencil } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddTeacherDialog } from "@/components/forms/AddTeacherDialog";
 import { BulkTeacherImport } from "@/components/forms/BulkTeacherImport";
 import { PrintableStaffForm } from "@/components/forms/PrintableStaffForm";
+import { EditTeacherDialog } from "@/components/teachers/EditTeacherDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
@@ -19,6 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export default function Teachers() {
+  const [editingTeacher, setEditingTeacher] = useState<any>(null);
+
   const { data: teachers, isLoading } = useQuery({
     queryKey: ["teachers"],
     queryFn: async () => {
@@ -84,6 +88,7 @@ export default function Teachers() {
                   <TableHead>Department</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -107,6 +112,16 @@ export default function Teachers() {
                         {teacher.status}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingTeacher(teacher)}
+                        title="Edit teacher"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -115,6 +130,14 @@ export default function Teachers() {
           )}
         </CardContent>
       </Card>
+
+      {editingTeacher && (
+        <EditTeacherDialog
+          teacher={editingTeacher}
+          open={!!editingTeacher}
+          onOpenChange={(open) => { if (!open) setEditingTeacher(null); }}
+        />
+      )}
     </div>
   );
 }

@@ -99,6 +99,24 @@ export default function Students() {
     return statusMatch && classMatch;
   }) || [];
 
+  // Group students by class
+  const studentsByClass = students.reduce((acc: Record<string, typeof students>, student) => {
+    const className = student.classes 
+      ? `${student.classes.name} ${student.classes.section || ""}`.trim()
+      : "Not Assigned";
+    const classKey = student.class_id || "unassigned";
+    if (!acc[classKey]) acc[classKey] = [];
+    acc[classKey].push(student);
+    return acc;
+  }, {});
+
+  // Sort class keys by class name
+  const sortedClassKeys = Object.keys(studentsByClass).sort((a, b) => {
+    const nameA = studentsByClass[a][0]?.classes?.name || "ZZZ";
+    const nameB = studentsByClass[b][0]?.classes?.name || "ZZZ";
+    return nameA.localeCompare(nameB, undefined, { numeric: true });
+  });
+
   const bulkDelete = useMutation({
     mutationFn: async (studentIds: string[]) => {
       const { error } = await supabase
@@ -167,6 +185,8 @@ export default function Students() {
       setSelectedStudents([]);
     }
   };
+
+  // Remove the "Class" column from the old table since we now group by class
 
   const handleSelectStudent = (studentId: string, checked: boolean) => {
     if (checked) {
@@ -320,122 +340,142 @@ export default function Students() {
               ) : students.length === 0 ? (
                 <p className="px-4 md:px-0 text-muted-foreground">No students found</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[640px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={selectedStudents.length === students.length && students.length > 0}
-                            onCheckedChange={handleSelectAll}
-                          />
-                        </TableHead>
-                        <TableHead>Photo</TableHead>
-                        <TableHead>Admission No.</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Class</TableHead>
-                        <TableHead>Tuition Fee</TableHead>
-                        <TableHead>Bus Fee</TableHead>
-                        <TableHead>Outstanding</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {students.map((student) => {
-                        const tuitionFee = student.fee_assignments?.find((f: any) => 
-                          f.fee_category?.name === "Tuition Fee"
-                        );
-                        const busFee = student.fee_assignments?.find((f: any) => 
-                          f.fee_category?.name === "Bus Fee"
-                        );
-                        const outstanding = student.fee_assignments
-                          ?.filter((f: any) => f.status === "pending")
-                          ?.reduce((sum: number, f: any) => sum + (f.amount || 0), 0) || 0;
+                <div className="space-y-6">
+                  {(selectedClass !== "all" ? [selectedClass] : sortedClassKeys).map((classKey) => {
+                    const classStudents = studentsByClass[classKey] || [];
+                    if (classStudents.length === 0) return null;
+                    const className = classStudents[0]?.classes 
+                      ? `${classStudents[0].classes.name} ${classStudents[0].classes.section || ""}`.trim()
+                      : "Not Assigned";
 
-                        return (
-                          <TableRow key={student.id}>
-                            <TableCell>
-                              <Checkbox
-                                checked={selectedStudents.includes(student.id)}
-                                onCheckedChange={(checked) => 
-                                  handleSelectStudent(student.id, checked as boolean)
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage 
-                                  src={student.photo_url || undefined} 
-                                  alt={`${student.first_name} ${student.last_name}`} 
-                                />
-                                <AvatarFallback>
-                                  <User className="h-5 w-5" />
-                                </AvatarFallback>
-                              </Avatar>
-                            </TableCell>
-                            <TableCell className="font-medium">{student.admission_number}</TableCell>
-                            <TableCell>{`${student.first_name} ${student.last_name}`}</TableCell>
-                            <TableCell>
-                              {student.classes 
-                                ? `${student.classes.name} ${student.classes.section || ""}`
-                                : "Not Assigned"
-                              }
-                            </TableCell>
-                            <TableCell>
-                              {tuitionFee ? `₹${tuitionFee.amount}` : "-"}
-                            </TableCell>
-                            <TableCell>
-                              {busFee ? `₹${busFee.amount}` : "-"}
-                            </TableCell>
-                            <TableCell>
-                              {outstanding > 0 ? (
-                                <span className="font-semibold text-destructive">
-                                  ₹{outstanding.toLocaleString()}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground">₹0</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={student.status === "active" ? "default" : "secondary"}>
-                                {student.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditingStudent(student)}
-                                  title="Edit student"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={async () => {
-                                    try {
-                                      await exportToCSV({
-                                        scope: 'student',
-                                        id: student.id,
-                                      });
-                                      toast.success("Student report exported");
-                                    } catch (error) {
-                                      toast.error("Failed to export student report");
-                                    }
-                                  }}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                    return (
+                      <div key={classKey}>
+                        <div className="flex items-center justify-between px-4 md:px-0 py-2 mb-2">
+                          <h3 className="text-base font-semibold flex items-center gap-2">
+                            <Badge variant="outline" className="text-sm px-3 py-1">{className}</Badge>
+                            <span className="text-muted-foreground text-sm font-normal">({classStudents.length} students)</span>
+                          </h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <Table className="min-w-[640px]">
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-12">
+                                  <Checkbox
+                                    checked={classStudents.every(s => selectedStudents.includes(s.id)) && classStudents.length > 0}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        const newSelected = [...new Set([...selectedStudents, ...classStudents.map(s => s.id)])];
+                                        setSelectedStudents(newSelected);
+                                      } else {
+                                        setSelectedStudents(selectedStudents.filter(id => !classStudents.some(s => s.id === id)));
+                                      }
+                                    }}
+                                  />
+                                </TableHead>
+                                <TableHead>Photo</TableHead>
+                                <TableHead>Admission No.</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Tuition Fee</TableHead>
+                                <TableHead>Bus Fee</TableHead>
+                                <TableHead>Outstanding</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {classStudents.map((student) => {
+                                const tuitionFee = student.fee_assignments?.find((f: any) => 
+                                  f.fee_category?.name === "Tuition Fee"
+                                );
+                                const busFee = student.fee_assignments?.find((f: any) => 
+                                  f.fee_category?.name === "Bus Fee"
+                                );
+                                const outstanding = student.fee_assignments
+                                  ?.filter((f: any) => f.status === "pending")
+                                  ?.reduce((sum: number, f: any) => sum + (f.amount || 0), 0) || 0;
+
+                                return (
+                                  <TableRow key={student.id}>
+                                    <TableCell>
+                                      <Checkbox
+                                        checked={selectedStudents.includes(student.id)}
+                                        onCheckedChange={(checked) => 
+                                          handleSelectStudent(student.id, checked as boolean)
+                                        }
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Avatar className="h-10 w-10">
+                                        <AvatarImage 
+                                          src={student.photo_url || undefined} 
+                                          alt={`${student.first_name} ${student.last_name}`} 
+                                        />
+                                        <AvatarFallback>
+                                          <User className="h-5 w-5" />
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </TableCell>
+                                    <TableCell className="font-medium">{student.admission_number}</TableCell>
+                                    <TableCell>{`${student.first_name} ${student.last_name}`}</TableCell>
+                                    <TableCell>
+                                      {tuitionFee ? `₹${tuitionFee.amount}` : "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {busFee ? `₹${busFee.amount}` : "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {outstanding > 0 ? (
+                                        <span className="font-semibold text-destructive">
+                                          ₹{outstanding.toLocaleString()}
+                                        </span>
+                                      ) : (
+                                        <span className="text-muted-foreground">₹0</span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge variant={student.status === "active" ? "default" : "secondary"}>
+                                        {student.status}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setEditingStudent(student)}
+                                          title="Edit student"
+                                        >
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={async () => {
+                                            try {
+                                              await exportToCSV({
+                                                scope: 'student',
+                                                id: student.id,
+                                              });
+                                              toast.success("Student report exported");
+                                            } catch (error) {
+                                              toast.error("Failed to export student report");
+                                            }
+                                          }}
+                                        >
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

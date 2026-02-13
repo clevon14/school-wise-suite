@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Search, Eye, DollarSign, CreditCard, Receipt, AlertCircle, Settings, Tag, Percent, ArrowRightLeft, Bell } from "lucide-react";
 import { StudentFeesDialog } from "@/components/fees/StudentFeesDialog";
 import { SimpleTuitionSetup } from "@/components/fees/SimpleTuitionSetup";
-import { SimpleBusSetup } from "@/components/fees/SimpleBusSetup";
+
 import { SearchFeesPayment } from "@/components/fees/SearchFeesPayment";
 import { SearchDueFees } from "@/components/fees/SearchDueFees";
 import { FeesMaster } from "@/components/fees/FeesMaster";
@@ -541,12 +541,9 @@ export default function Fees() {
           <FeesMaster />
         </TabsContent>
 
-        {/* Fees Setup Tab (Tuition + Bus) */}
+        {/* Fees Setup Tab (Tuition) */}
         <TabsContent value="fees-setup" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <SimpleTuitionSetup />
-            <SimpleBusSetup />
-          </div>
+          <SimpleTuitionSetup />
         </TabsContent>
 
         {/* Fees Discount Tab */}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Search, Eye, DollarSign, CreditCard, Receipt, AlertCircle, Settings, Tag, Percent, ArrowRightLeft, Bell } from "lucide-react";
+import { StudentFeesDialog } from "@/components/fees/StudentFeesDialog";
 import { SimpleTuitionSetup } from "@/components/fees/SimpleTuitionSetup";
 import { SimpleBusSetup } from "@/components/fees/SimpleBusSetup";
 import { SearchFeesPayment } from "@/components/fees/SearchFeesPayment";
@@ -560,204 +561,17 @@ export default function Fees() {
       </Tabs>
 
       {/* Student Fee Details Dialog */}
-      <Dialog open={showStudentDialog} onOpenChange={setShowStudentDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Student Fee Details</DialogTitle>
-          </DialogHeader>
-          
-          {selectedStudentForView && (
-            <div className="space-y-6">
-              {/* Student Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Student Information</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">
-                      {selectedStudentForView.first_name} {selectedStudentForView.last_name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Admission No.</p>
-                    <p className="font-medium">{selectedStudentForView.admission_number}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Class</p>
-                    <p className="font-medium">
-                      {selectedStudentForView.class?.name} {selectedStudentForView.class?.section || ""}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Father Name</p>
-                    <p className="font-medium">{selectedStudentForView.father_name || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contact</p>
-                    <p className="font-medium">{selectedStudentForView.parent_phone || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Village</p>
-                    <p className="font-medium">{selectedStudentForView.village || "-"}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Fee Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Fee Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Total Assigned</p>
-                      <p className="text-2xl font-bold">
-                        ₹{selectedStudentForView.fee_assignments
-                          ?.reduce((sum: number, f: any) => sum + (f.amount || 0), 0)
-                          .toLocaleString() || 0}
-                      </p>
-                    </div>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Paid</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        ₹{selectedStudentForView.fee_assignments
-                          ?.filter((f: any) => f.status === "paid")
-                          ?.reduce((sum: number, f: any) => sum + (f.amount || 0), 0)
-                          .toLocaleString() || 0}
-                      </p>
-                    </div>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Outstanding</p>
-                      <p className="text-2xl font-bold text-destructive">
-                        ₹{selectedStudentForView.fee_assignments
-                          ?.filter((f: any) => f.status === "pending")
-                          ?.reduce((sum: number, f: any) => sum + (f.amount || 0), 0)
-                          .toLocaleString() || 0}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Fee Details */}
-              <Tabs defaultValue="pending">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="pending">Pending Fees</TabsTrigger>
-                  <TabsTrigger value="paid">Payment History</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="pending">
-                  <Card>
-                    <CardContent className="pt-6">
-                      {selectedStudentForView.fee_assignments?.filter((f: any) => f.status === "pending").length > 0 ? (
-                        <div className="space-y-3">
-                          {selectedStudentForView.fee_assignments
-                            ?.filter((f: any) => f.status === "pending")
-                            .map((fee: any) => (
-                              <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg gap-4">
-                                <div className="flex-1">
-                                  <p className="font-medium">{fee.fee_category?.name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Due: {new Date(fee.due_date).toLocaleDateString()}
-                                  </p>
-                                  <p className="text-lg font-bold mt-1">Total: ₹{fee.amount}</p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="flex flex-col gap-1">
-                                    <label className="text-xs text-muted-foreground">Amount</label>
-                                    <Input
-                                      type="number"
-                                      placeholder="Enter amount"
-                                      value={paymentAmounts[fee.id] || ""}
-                                      onChange={(e) => 
-                                        setPaymentAmounts({
-                                          ...paymentAmounts,
-                                          [fee.id]: e.target.value
-                                        })
-                                      }
-                                      className="w-32"
-                                    />
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      const amount = parseFloat(paymentAmounts[fee.id] || fee.amount.toString());
-                                      if (!amount || amount <= 0) {
-                                        toast({
-                                          title: "Invalid Amount",
-                                          description: "Please enter a valid payment amount",
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-                                      if (amount > fee.amount) {
-                                        toast({
-                                          title: "Amount Too High",
-                                          description: "Payment amount cannot exceed due amount",
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-                                      recordPaymentMutation.mutate({
-                                        studentId: selectedStudentForView.id,
-                                        amount: amount,
-                                        feeAssignmentId: fee.id,
-                                      });
-                                    }}
-                                    disabled={recordPaymentMutation.isPending}
-                                  >
-                                    <DollarSign className="h-4 w-4 mr-1" />
-                                    Pay
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-center text-muted-foreground py-8">No pending fees</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                
-                <TabsContent value="paid">
-                  <Card>
-                    <CardContent className="pt-6">
-                      {selectedStudentForView.fee_assignments?.filter((f: any) => f.status === "paid").length > 0 ? (
-                        <div className="space-y-3">
-                          {selectedStudentForView.fee_assignments
-                            ?.filter((f: any) => f.status === "paid")
-                            .map((fee: any) => (
-                              <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                <div>
-                                  <p className="font-medium">{fee.fee_category?.name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Paid on: {new Date(fee.due_date).toLocaleDateString()}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                    Paid
-                                  </Badge>
-                                  <p className="text-lg font-bold">₹{fee.amount}</p>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-center text-muted-foreground py-8">No payment history</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <StudentFeesDialog
+        open={showStudentDialog}
+        onOpenChange={setShowStudentDialog}
+        student={selectedStudentForView}
+        paymentAmounts={paymentAmounts}
+        setPaymentAmounts={setPaymentAmounts}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        recordPaymentMutation={recordPaymentMutation}
+        toast={toast}
+      />
     </div>
   );
 }

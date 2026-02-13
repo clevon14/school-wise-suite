@@ -11,9 +11,7 @@ import { AddRouteDialog } from "@/components/transport/AddRouteDialog";
 import { PassengerListDialog } from "@/components/transport/PassengerListDialog";
 import { LiveBusTracking } from "@/components/transport/LiveBusTracking";
 import { SimpleBusSetup } from "@/components/fees/SimpleBusSetup";
-import { CollectBusFeeDialog } from "@/components/fees/CollectBusFeeDialog";
-import { GenerateBusFeesDialog } from "@/components/fees/GenerateBusFeesDialog";
-import { VillageBusFeesManager } from "@/components/fees/VillageBusFeesManager";
+import { StudentTransportFees } from "@/components/transport/StudentTransportFees";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Transport() {
@@ -231,6 +229,7 @@ export default function Transport() {
         </TabsContent>
 
         <TabsContent value="bus-fees" className="space-y-6 mt-6">
+          <StudentTransportFees />
           <SimpleBusSetup />
         </TabsContent>
       </Tabs>

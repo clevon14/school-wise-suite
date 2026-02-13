@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, DollarSign } from "lucide-react";
@@ -19,12 +20,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 export function StudentTransportFees() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searched, setSearched] = useState(false);
+  const [collectStudent, setCollectStudent] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: classes } = useQuery({
     queryKey: ["classes"],
@@ -67,6 +79,60 @@ export function StudentTransportFees() {
       return data;
     },
     enabled: !!selectedClass,
+  });
+
+  // Fetch bus fee assignments for the selected student
+  const { data: busFeeAssignments } = useQuery({
+    queryKey: ["bus-fee-assignments", collectStudent?.id],
+    queryFn: async () => {
+      if (!collectStudent) return [];
+      const { data, error } = await supabase
+        .from("fee_assignments")
+        .select(`
+          *,
+          fee_category:fee_categories(name),
+          payments:payments(id, amount, payment_date, payment_method, receipt_number)
+        `)
+        .eq("student_id", collectStudent.id)
+        .order("due_date", { ascending: false });
+      if (error) throw error;
+      // Filter to bus-related fees
+      return data?.filter((fa: any) => 
+        fa.fee_category?.name?.toLowerCase().includes("bus")
+      ) || [];
+    },
+    enabled: !!collectStudent?.id,
+  });
+
+  const collectMutation = useMutation({
+    mutationFn: async ({ feeAssignmentId, amount }: { feeAssignmentId: string; amount: number }) => {
+      const receiptNumber = `BUS-REC-${Date.now()}`;
+      const { error: paymentError } = await supabase
+        .from("payments")
+        .insert({
+          fee_assignment_id: feeAssignmentId,
+          amount,
+          payment_method: paymentMethod,
+          receipt_number: receiptNumber,
+          payment_date: new Date().toISOString().split("T")[0],
+        });
+      if (paymentError) throw paymentError;
+
+      const { error: updateError } = await supabase
+        .from("fee_assignments")
+        .update({ status: "paid" })
+        .eq("id", feeAssignmentId);
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bus-fee-assignments", collectStudent?.id] });
+      queryClient.invalidateQueries({ queryKey: ["transport-fee-students"] });
+      queryClient.invalidateQueries({ queryKey: ["fees-summary"] });
+      toast({ title: "Success", description: "Bus fee collected successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
   });
 
   const handleSearch = () => {
@@ -214,16 +280,15 @@ export function StudentTransportFees() {
                         <TableCell>{bus?.vehicle_number || "-"}</TableCell>
                         <TableCell>{stop?.stop_name || route?.village || "-"}</TableCell>
                         <TableCell>
-                          {activeTransport && (
-                            <Button
-                              size="icon"
-                              variant="default"
-                              className="h-8 w-8 rounded-full"
-                              title="Collect Bus Fee"
-                            >
-                              <DollarSign className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            size="icon"
+                            variant="default"
+                            className="h-8 w-8 rounded-full"
+                            title="Collect Bus Fee"
+                            onClick={() => setCollectStudent(student)}
+                          >
+                            <DollarSign className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -246,6 +311,115 @@ export function StudentTransportFees() {
           </div>
         )}
       </div>
+
+      {/* Collect Bus Fee Dialog */}
+      <Dialog open={!!collectStudent} onOpenChange={(open) => !open && setCollectStudent(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Collect Bus Fee</DialogTitle>
+          </DialogHeader>
+
+          {collectStudent && (
+            <div className="space-y-6">
+              {/* Student Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg text-sm">
+                <div>
+                  <span className="text-muted-foreground">Student:</span>{" "}
+                  <span className="font-medium">{collectStudent.first_name} {collectStudent.last_name}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Admission No:</span>{" "}
+                  <span className="font-medium">{collectStudent.admission_number}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Class:</span>{" "}
+                  <span className="font-medium">
+                    {collectStudent.class?.name}{collectStudent.class?.section ? ` (${collectStudent.class.section})` : ""}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Father:</span>{" "}
+                  <span className="font-medium">{collectStudent.father_name || "-"}</span>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Payment Method</label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="upi">UPI</SelectItem>
+                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Fee Table */}
+              {busFeeAssignments && busFeeAssignments.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fee</TableHead>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Paid</TableHead>
+                        <TableHead>Balance</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {busFeeAssignments.map((fa: any) => {
+                        const totalPaid = fa.payments?.reduce((sum: number, p: any) => sum + Number(p.amount), 0) || 0;
+                        const balance = Number(fa.amount) - totalPaid;
+                        const isPaid = balance <= 0;
+
+                        return (
+                          <TableRow key={fa.id}>
+                            <TableCell className="font-medium">{fa.fee_category?.name}</TableCell>
+                            <TableCell>{new Date(fa.due_date).toLocaleDateString()}</TableCell>
+                            <TableCell>₹{Number(fa.amount).toLocaleString()}</TableCell>
+                            <TableCell>₹{totalPaid.toLocaleString()}</TableCell>
+                            <TableCell className={balance > 0 ? "text-destructive font-medium" : ""}>
+                              ₹{balance.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={isPaid ? "default" : balance > 0 && totalPaid > 0 ? "secondary" : "destructive"}>
+                                {isPaid ? "Paid" : totalPaid > 0 ? "Partial" : "Unpaid"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {!isPaid && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => collectMutation.mutate({ feeAssignmentId: fa.id, amount: balance })}
+                                  disabled={collectMutation.isPending}
+                                >
+                                  {collectMutation.isPending ? "..." : "Collect"}
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No bus fee assignments found for this student.
+                </p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

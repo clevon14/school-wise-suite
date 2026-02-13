@@ -13,6 +13,7 @@ import { SearchDueFees } from "@/components/fees/SearchDueFees";
 import { FeesMaster } from "@/components/fees/FeesMaster";
 import { FeesDiscount } from "@/components/fees/FeesDiscount";
 import { FeesReminder } from "@/components/fees/FeesReminder";
+import { FeeDefaulters } from "@/components/fees/FeeDefaulters";
 import { exportFeesCSV } from "@/lib/fee-csv-export";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -315,6 +316,7 @@ export default function Fees() {
     { value: "collect", label: "Collect Fees", icon: CreditCard },
     { value: "search-payment", label: "Search Fees Payment", icon: Receipt },
     { value: "search-due", label: "Search Due Fees", icon: AlertCircle },
+    { value: "defaulters", label: "Fee Defaulters", icon: AlertCircle },
     { value: "fees-master", label: "Fees Master", icon: Settings },
     { value: "fees-setup", label: "Fees Setup", icon: Tag },
     { value: "fees-discount", label: "Fees Discount", icon: Percent },
@@ -534,6 +536,11 @@ export default function Fees() {
         {/* Search Due Fees Tab */}
         <TabsContent value="search-due" className="mt-6">
           <SearchDueFees />
+        </TabsContent>
+
+        {/* Fee Defaulters Tab */}
+        <TabsContent value="defaulters" className="mt-6">
+          <FeeDefaulters />
         </TabsContent>
 
         {/* Fees Master Tab */}

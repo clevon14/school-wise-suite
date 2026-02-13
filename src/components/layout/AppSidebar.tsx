@@ -53,6 +53,7 @@ const adminMenuItems = [
   { title: "Transport", url: "/transport", icon: Bus },
   { title: "Quizzes", url: "/quizzes", icon: ListChecks },
   { title: "Syllabus", url: "/syllabus", icon: BookOpen },
+  { title: "Academic Calendar", url: "/calendar", icon: Calendar },
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Parent Portal", url: "/parent", icon: Users },
 ];

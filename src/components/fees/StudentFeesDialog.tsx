@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Printer, DollarSign, Plus } from "lucide-react";
+import { FeeReceipt } from "@/components/fees/FeeReceipt";
 
 interface StudentFeesDialogProps {
   open: boolean;
@@ -289,9 +290,15 @@ export function StudentFeesDialog({
                               <Plus className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button size="icon" variant="ghost" className="h-7 w-7" title="Print">
-                            <Printer className="h-4 w-4" />
-                          </Button>
+                          {totalPaid > 0 && feePayments.length > 0 && (
+                            <FeeReceipt
+                              student={student}
+                              payment={feePayments[0]}
+                              feeName={fee.fee_category?.name || "Fee"}
+                              totalAmount={Number(fee.amount)}
+                              balance={balance}
+                            />
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -322,9 +329,13 @@ export function StudentFeesDialog({
                         </TableCell>
                         <TableCell></TableCell>
                         <TableCell>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" title="Print Receipt">
-                            <Printer className="h-4 w-4" />
-                          </Button>
+                          <FeeReceipt
+                            student={student}
+                            payment={payment}
+                            feeName={feeAssignments.find((f: any) => f.id === payment.fee_assignment_id)?.fee_category?.name || "Fee"}
+                            totalAmount={Number(feeAssignments.find((f: any) => f.id === payment.fee_assignment_id)?.amount || 0)}
+                            balance={0}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}

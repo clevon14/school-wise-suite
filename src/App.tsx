@@ -30,6 +30,8 @@ import ParentTransportView from "./pages/ParentTransportView";
 import Reports from "./pages/Reports";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import AdminTeachers from "./pages/AdminTeachers";
+import AcademicCalendar from "./pages/AcademicCalendar";
+import StudentProfile from "./pages/StudentProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -251,6 +253,26 @@ const App = () => (
                     <AdminTeachers />
                   </AppLayout>
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AcademicCalendar />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/students/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <StudentProfile />
+                </AppLayout>
               </ProtectedRoute>
             }
           />

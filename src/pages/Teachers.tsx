@@ -9,6 +9,7 @@ import { AddTeacherDialog } from "@/components/forms/AddTeacherDialog";
 import { BulkTeacherImport } from "@/components/forms/BulkTeacherImport";
 import { PrintableStaffForm } from "@/components/forms/PrintableStaffForm";
 import { EditTeacherDialog } from "@/components/teachers/EditTeacherDialog";
+import { LeaveManagement } from "@/components/teachers/LeaveManagement";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
@@ -138,6 +139,9 @@ export default function Teachers() {
           onOpenChange={(open) => { if (!open) setEditingTeacher(null); }}
         />
       )}
+
+      {/* Leave Management Section */}
+      <LeaveManagement />
     </div>
   );
 }

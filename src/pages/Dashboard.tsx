@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, ClipboardCheck, UserCheck, DollarSign, TrendingUp } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ActionAlerts } from "@/components/dashboard/ActionAlerts";
 
 export default function Dashboard() {
   const { data: studentsCount } = useQuery({
@@ -170,6 +171,9 @@ export default function Dashboard() {
           Here's what's happening at Holy Cross School today
         </p>
       </div>
+
+      {/* Action Alerts */}
+      <ActionAlerts />
 
       {/* Quick Stats Cards */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">

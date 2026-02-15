@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, ClipboardCheck, UserCheck, DollarSign, TrendingUp } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ActionAlerts } from "@/components/dashboard/ActionAlerts";
+import { ClassStrengthTable } from "@/components/dashboard/ClassStrengthTable";
 
 export default function Dashboard() {
   const { data: studentsCount } = useQuery({
@@ -311,6 +312,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Class-wise Student Strength */}
+      <ClassStrengthTable />
     </div>
   );
 }

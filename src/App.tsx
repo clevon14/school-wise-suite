@@ -35,7 +35,7 @@ import StudentProfile from "./pages/StudentProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1 } },
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
 const App = () => (

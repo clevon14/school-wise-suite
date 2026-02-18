@@ -55,7 +55,7 @@ export function ReportCard({ examId, studentId }: { examId: string; studentId: s
   });
 
   const totalMarksObtained = calculateTotalMarks(marks || []);
-  const maxMarks = calculateMaxMarks(marks?.map(m => m.exam_subjects) || []);
+  const maxMarks = calculateMaxMarks((marks?.map(m => m.exam_subjects) || []) as { max_marks: number }[]);
   const percentage = calculatePercentage(totalMarksObtained, maxMarks);
   const overallGrade = calculateGrade(totalMarksObtained, maxMarks);
 

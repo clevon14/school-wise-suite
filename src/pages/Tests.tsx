@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,212 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Download, Eye, Calendar, Edit, FileEdit } from "lucide-react";
+import { Plus, Download, Eye, Calendar, Edit, UserX, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { CreateTestDialog } from "@/components/tests/CreateTestDialog";
 import { EnterMarksDialog } from "@/components/tests/EnterMarksDialog";
 import { exportTestsToCSV } from "@/lib/test-csv-export";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+interface MarkEntry {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_number: string;
+  marks_obtained: number | null;
+  is_absent: boolean;
+}
+
+function EnterMarksInline({ testId }: { testId: string }) {
+  const queryClient = useQueryClient();
+  const [marks, setMarks] = useState<MarkEntry[]>([]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const { data: test } = useQuery({
+    queryKey: ["test", testId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tests").select("*").eq("id", testId).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: results, isLoading } = useQuery({
+    queryKey: ["test-results-entry", testId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_results")
+        .select(`*, students:student_id(id, first_name, last_name, admission_number)`)
+        .eq("test_id", testId)
+        .order("students(first_name)");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (results) {
+      setMarks(
+        results.map((r: any) => ({
+          id: r.id,
+          student_id: r.student_id,
+          student_name: `${r.students?.first_name} ${r.students?.last_name}`,
+          admission_number: r.students?.admission_number || "",
+          marks_obtained: r.marks_obtained,
+          is_absent: r.is_absent || false,
+        }))
+      );
+    }
+  }, [results]);
+
+  const saveMarksMutation = useMutation({
+    mutationFn: async () => {
+      const updates = marks.map((mark) =>
+        supabase.from("test_results").update({
+          marks_obtained: mark.is_absent ? null : mark.marks_obtained,
+          is_absent: mark.is_absent,
+        }).eq("id", mark.id)
+      );
+      const res = await Promise.all(updates);
+      const errs = res.filter((r) => r.error);
+      if (errs.length > 0) throw errs[0].error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["test-results", testId] });
+      queryClient.invalidateQueries({ queryKey: ["tests"] });
+      toast.success("Marks saved successfully");
+    },
+    onError: () => toast.error("Failed to save marks"),
+  });
+
+  const updateMark = (index: number, field: keyof MarkEntry, value: any) => {
+    setMarks((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      if (field === "is_absent" && value === true) updated[index].marks_obtained = null;
+      return updated;
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      let next = index + 1;
+      while (next < marks.length && marks[next].is_absent) next++;
+      if (next < marks.length) inputRefs.current[next]?.focus();
+    }
+  };
+
+  const entered = marks.filter((m) => !m.is_absent && m.marks_obtained !== null).length;
+  const absentCount = marks.filter((m) => m.is_absent).length;
+  const avgScore = entered > 0
+    ? (marks.filter((m) => !m.is_absent && m.marks_obtained !== null)
+        .reduce((sum, m) => sum + (m.marks_obtained || 0), 0) / entered).toFixed(1)
+    : null;
+
+  if (!test) return null;
+
+  return (
+    <div className="space-y-3 p-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm text-muted-foreground">
+          Max: <span className="font-semibold text-foreground">{test.max_marks}</span>
+        </span>
+        <span className="text-sm text-muted-foreground">
+          Pass: <span className="font-semibold text-foreground">{test.pass_marks}</span>
+        </span>
+        <Badge variant="outline">{entered + absentCount}/{marks.length} marked</Badge>
+        {absentCount > 0 && <Badge variant="secondary">{absentCount} absent</Badge>}
+        {avgScore && <Badge>Avg: {avgScore}</Badge>}
+        <div className="ml-auto">
+          <Button size="sm" onClick={() => saveMarksMutation.mutate()} disabled={saveMarksMutation.isPending}>
+            <Save className="h-3 w-3 mr-1" />
+            {saveMarksMutation.isPending ? "Saving..." : "Save Marks"}
+          </Button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-8 text-muted-foreground">Loading students...</div>
+      ) : marks.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">No students found for this test.</div>
+      ) : (
+        <ScrollArea className="h-[450px] border rounded-md">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
+              <TableRow>
+                <TableHead className="w-10">#</TableHead>
+                <TableHead>Student Name</TableHead>
+                <TableHead className="w-28">Adm. No.</TableHead>
+                <TableHead className="w-36">Marks <span className="text-muted-foreground font-normal">/ {test.max_marks}</span></TableHead>
+                <TableHead className="w-20 text-center">%</TableHead>
+                <TableHead className="w-20 text-center">Absent</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {marks.map((mark, index) => {
+                const pct = mark.marks_obtained !== null && test.max_marks > 0
+                  ? Math.round((mark.marks_obtained / test.max_marks) * 100)
+                  : null;
+                const passed = mark.marks_obtained !== null && mark.marks_obtained >= test.pass_marks;
+                return (
+                  <TableRow key={mark.id} className={cn(mark.is_absent && "opacity-50 bg-muted/20")}>
+                    <TableCell className="text-muted-foreground text-xs">{index + 1}</TableCell>
+                    <TableCell className="font-medium text-sm">{mark.student_name}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{mark.admission_number}</TableCell>
+                    <TableCell>
+                      <Input
+                        ref={(el) => { inputRefs.current[index] = el; }}
+                        type="number"
+                        min="0"
+                        max={test.max_marks}
+                        value={mark.marks_obtained ?? ""}
+                        onChange={(e) => updateMark(index, "marks_obtained", e.target.value === "" ? null : parseFloat(e.target.value))}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        disabled={mark.is_absent}
+                        className="h-8 w-24 text-center"
+                        placeholder="—"
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {mark.is_absent ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : pct !== null ? (
+                        <span className={cn("text-xs font-semibold", passed ? "text-primary" : "text-destructive")}>
+                          {pct}%
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => updateMark(index, "is_absent", !mark.is_absent)}
+                        className={cn(
+                          "rounded-full p-1 transition-colors",
+                          mark.is_absent ? "text-destructive" : "text-muted-foreground hover:text-foreground"
+                        )}
+                        title={mark.is_absent ? "Mark present" : "Mark absent"}
+                      >
+                        <UserX className="h-4 w-4" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      )}
+      <p className="text-xs text-muted-foreground">Tip: Press Tab or Enter to move to the next student</p>
+    </div>
+  );
+}
 
 export default function Tests() {
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -270,7 +469,7 @@ export default function Tests() {
                   <Select value={marksSubject} onValueChange={(v) => { setMarksSubject(v); setMarksTestId(null); }}>
                     <SelectTrigger><SelectValue placeholder="All subjects" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All subjects</SelectItem>
+                      <SelectItem value="all">All subjects</SelectItem>
                       {subjects?.map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
@@ -316,212 +515,6 @@ export default function Tests() {
           onOpenChange={(open) => !open && setEnterMarksTestId(null)}
         />
       )}
-    </div>
-  );
-}
-
-// Inline marks entry component embedded in the tab
-import { useRef, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { UserX, Save } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-
-interface MarkEntry {
-  id: string;
-  student_id: string;
-  student_name: string;
-  admission_number: string;
-  marks_obtained: number | null;
-  is_absent: boolean;
-}
-
-function EnterMarksInline({ testId }: { testId: string }) {
-  const queryClient = useQueryClient();
-  const [marks, setMarks] = useState<MarkEntry[]>([]);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const { data: test } = useQuery({
-    queryKey: ["test", testId],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("tests").select("*").eq("id", testId).single();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: results, isLoading } = useQuery({
-    queryKey: ["test-results-entry", testId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("test_results")
-        .select(`*, students:student_id(id, first_name, last_name, admission_number)`)
-        .eq("test_id", testId)
-        .order("students(first_name)");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  useEffect(() => {
-    if (results) {
-      setMarks(
-        results.map((r: any) => ({
-          id: r.id,
-          student_id: r.student_id,
-          student_name: `${r.students?.first_name} ${r.students?.last_name}`,
-          admission_number: r.students?.admission_number || "",
-          marks_obtained: r.marks_obtained,
-          is_absent: r.is_absent || false,
-        }))
-      );
-    }
-  }, [results]);
-
-  const saveMarksMutation = useMutation({
-    mutationFn: async () => {
-      const updates = marks.map((mark) =>
-        supabase.from("test_results").update({
-          marks_obtained: mark.is_absent ? null : mark.marks_obtained,
-          is_absent: mark.is_absent,
-        }).eq("id", mark.id)
-      );
-      const res = await Promise.all(updates);
-      const errs = res.filter((r) => r.error);
-      if (errs.length > 0) throw errs[0].error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["test-results", testId] });
-      queryClient.invalidateQueries({ queryKey: ["test-stats", testId] });
-      queryClient.invalidateQueries({ queryKey: ["tests"] });
-      toast.success("Marks saved successfully");
-    },
-    onError: () => toast.error("Failed to save marks"),
-  });
-
-  const updateMark = (index: number, field: keyof MarkEntry, value: any) => {
-    setMarks((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      if (field === "is_absent" && value === true) updated[index].marks_obtained = null;
-      return updated;
-    });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault();
-      let next = index + 1;
-      while (next < marks.length && marks[next].is_absent) next++;
-      if (next < marks.length) inputRefs.current[next]?.focus();
-    }
-  };
-
-  const entered = marks.filter((m) => !m.is_absent && m.marks_obtained !== null).length;
-  const absentCount = marks.filter((m) => m.is_absent).length;
-  const avgScore = entered > 0
-    ? (marks.filter((m) => !m.is_absent && m.marks_obtained !== null)
-        .reduce((sum, m) => sum + (m.marks_obtained || 0), 0) / entered).toFixed(1)
-    : null;
-
-  if (!test) return null;
-
-  return (
-    <div className="space-y-3 p-3">
-      {/* Stats bar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-sm text-muted-foreground">
-          Max: <span className="font-semibold text-foreground">{test.max_marks}</span>
-        </span>
-        <span className="text-sm text-muted-foreground">
-          Pass: <span className="font-semibold text-foreground">{test.pass_marks}</span>
-        </span>
-        <Badge variant="outline">{entered + absentCount}/{marks.length} marked</Badge>
-        {absentCount > 0 && <Badge variant="secondary">{absentCount} absent</Badge>}
-        {avgScore && <Badge>Avg: {avgScore}</Badge>}
-        <div className="ml-auto">
-          <Button size="sm" onClick={() => saveMarksMutation.mutate()} disabled={saveMarksMutation.isPending}>
-            <Save className="h-3 w-3 mr-1" />
-            {saveMarksMutation.isPending ? "Saving..." : "Save Marks"}
-          </Button>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading students...</div>
-      ) : marks.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">No students found for this test.</div>
-      ) : (
-        <ScrollArea className="h-[450px] border rounded-md">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                <TableHead className="w-10">#</TableHead>
-                <TableHead>Student Name</TableHead>
-                <TableHead className="w-28">Adm. No.</TableHead>
-                <TableHead className="w-36">Marks <span className="text-muted-foreground font-normal">/ {test.max_marks}</span></TableHead>
-                <TableHead className="w-20 text-center">%</TableHead>
-                <TableHead className="w-20 text-center">Absent</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {marks.map((mark, index) => {
-                const pct = mark.marks_obtained !== null && test.max_marks > 0
-                  ? Math.round((mark.marks_obtained / test.max_marks) * 100)
-                  : null;
-                const passed = mark.marks_obtained !== null && mark.marks_obtained >= test.pass_marks;
-                return (
-                  <TableRow key={mark.id} className={cn(mark.is_absent && "opacity-50 bg-muted/20")}>
-                    <TableCell className="text-muted-foreground text-xs">{index + 1}</TableCell>
-                    <TableCell className="font-medium text-sm">{mark.student_name}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{mark.admission_number}</TableCell>
-                    <TableCell>
-                      <Input
-                        ref={(el) => { inputRefs.current[index] = el; }}
-                        type="number"
-                        min="0"
-                        max={test.max_marks}
-                        value={mark.marks_obtained ?? ""}
-                        onChange={(e) => updateMark(index, "marks_obtained", e.target.value === "" ? null : parseFloat(e.target.value))}
-                        onKeyDown={(e) => handleKeyDown(e, index)}
-                        disabled={mark.is_absent}
-                        className="h-8 w-24 text-center"
-                        placeholder="—"
-                      />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {mark.is_absent ? (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      ) : pct !== null ? (
-                        <span className={cn("text-xs font-semibold", passed ? "text-primary" : "text-destructive")}>
-                          {pct}%
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <button
-                        type="button"
-                        onClick={() => updateMark(index, "is_absent", !mark.is_absent)}
-                        className={cn(
-                          "rounded-full p-1 transition-colors",
-                          mark.is_absent ? "text-destructive" : "text-muted-foreground hover:text-foreground"
-                        )}
-                        title={mark.is_absent ? "Mark present" : "Mark absent"}
-                      >
-                        <UserX className="h-4 w-4" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      )}
-      <p className="text-xs text-muted-foreground">Tip: Press Tab or Enter to move to the next student</p>
     </div>
   );
 }

@@ -54,18 +54,27 @@ export default function Exams() {
     enabled: !!selectedExamId,
   });
 
+  // Get the class_id of the selected exam for filtering students
+  const selectedExam = exams?.find((e) => e.id === selectedExamId);
+
   const { data: students } = useQuery({
-    queryKey: ["students-for-report"],
+    queryKey: ["students-for-report", selectedExam?.class_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("students")
         .select("id, first_name, last_name, admission_number, class_id")
         .eq("status", "active")
         .order("first_name");
       
+      if (selectedExam?.class_id) {
+        query = query.eq("class_id", selectedExam.class_id);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
+    enabled: !!selectedExamId,
   });
 
   return (

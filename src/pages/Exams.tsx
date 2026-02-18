@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, FileEdit, BarChart3 } from "lucide-react";
 import { CreateExamDialog } from "@/components/exams/CreateExamDialog";
 import { AddExamSubjectsDialog } from "@/components/exams/AddExamSubjectsDialog";
-import { MarksEntryDialog } from "@/components/exams/MarksEntryDialog";
+import { InlineMarksEntry } from "@/components/exams/InlineMarksEntry";
 import { ReportCard } from "@/components/exams/ReportCard";
 import { ClassAnalytics } from "@/components/exams/ClassAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +17,7 @@ import { useState } from "react";
 export default function Exams() {
   const [selectedExamId, setSelectedExamId] = useState<string>("");
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
 
   const { data: exams, isLoading } = useQuery({
     queryKey: ["exams"],
@@ -150,53 +151,69 @@ export default function Exams() {
               <CardTitle className="text-lg md:text-xl">Enter Marks</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 px-4 md:px-6">
-              <Select value={selectedExamId} onValueChange={setSelectedExamId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an exam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exams?.map((exam) => (
-                    <SelectItem key={exam.id} value={exam.id}>
-                      {exam.name} - {exam.classes?.name} {exam.classes?.section || ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {selectedExamId && (
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[500px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Code</TableHead>
-                        <TableHead>Exam Date</TableHead>
-                        <TableHead>Max Marks</TableHead>
-                        <TableHead>Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {examSubjects?.map((subject) => (
-                        <TableRow key={subject.id}>
-                          <TableCell>{subject.subjects?.name}</TableCell>
-                          <TableCell>{subject.subjects?.code || "-"}</TableCell>
-                          <TableCell>{new Date(subject.exam_date).toLocaleDateString()}</TableCell>
-                          <TableCell>{subject.max_marks}</TableCell>
-                          <TableCell>
-                            <MarksEntryDialog examSubjectId={subject.id}>
-                              <Button variant="outline" size="sm">
-                                <FileEdit className="h-3 w-3 mr-1" />
-                                <span className="hidden sm:inline">Enter Marks</span>
-                                <span className="sm:hidden">Enter</span>
-                              </Button>
-                            </MarksEntryDialog>
-                          </TableCell>
-                        </TableRow>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Step 1: Select Exam</p>
+                  <Select value={selectedExamId} onValueChange={(v) => { setSelectedExamId(v); setSelectedSubjectId(""); }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an exam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {exams?.map((exam) => (
+                        <SelectItem key={exam.id} value={exam.id}>
+                          {exam.name} — {exam.classes?.name} {exam.classes?.section || ""}
+                        </SelectItem>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {selectedExamId && examSubjects && examSubjects.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Step 2: Select Subject</p>
+                    <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {examSubjects.map((subject) => (
+                          <SelectItem key={subject.id} value={subject.id}>
+                            {subject.subjects?.name} ({new Date(subject.exam_date).toLocaleDateString()}) — {subject.max_marks} marks
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              {selectedExamId && examSubjects?.length === 0 && (
+                <p className="text-sm text-muted-foreground py-4">
+                  No subjects added for this exam yet. Go to the Exams tab and add subjects first.
+                </p>
               )}
+
+              {selectedSubjectId && (() => {
+                const subject = examSubjects?.find(s => s.id === selectedSubjectId);
+                if (!subject) return null;
+                return (
+                  <div className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <FileEdit className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="font-semibold">{subject.subjects?.name}</h3>
+                      <span className="text-sm text-muted-foreground">
+                        · {new Date(subject.exam_date).toLocaleDateString()} · Max: {subject.max_marks} · Pass: {subject.pass_marks}
+                      </span>
+                    </div>
+                    <InlineMarksEntry
+                      examSubjectId={subject.id}
+                      subjectName={subject.subjects?.name || ""}
+                      maxMarks={subject.max_marks}
+                      passMarks={subject.pass_marks}
+                    />
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

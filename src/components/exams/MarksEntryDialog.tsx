@@ -26,29 +26,32 @@ export function MarksEntryDialog({ examSubjectId, children }: { examSubjectId: s
     queryFn: async () => {
       const { data, error } = await supabase
         .from("exam_subjects")
-        .select(`
-          *,
-          exams!inner(class_id),
-          subjects!inner(name)
-        `)
+        .select("*, subjects(name), exam_id, max_marks, pass_marks")
         .eq("id", examSubjectId)
         .single();
-      
       if (error) throw error;
-      return data;
+
+      // Resolve class_id separately
+      const { data: exam } = await supabase
+        .from("exams")
+        .select("class_id")
+        .eq("id", data.exam_id)
+        .single();
+
+      return { ...data, class_id: exam?.class_id ?? null };
     },
     enabled: open,
   });
 
   const { data: students } = useQuery({
-    queryKey: ["students-for-marks", examSubject?.exams?.class_id],
+    queryKey: ["students-for-marks", examSubject?.class_id],
     queryFn: async () => {
-      if (!examSubject?.exams?.class_id) return [];
+      if (!examSubject?.class_id) return [];
       
       const { data, error } = await supabase
         .from("students")
         .select("id, first_name, last_name")
-        .eq("class_id", examSubject.exams.class_id)
+        .eq("class_id", examSubject.class_id)
         .eq("status", "active")
         .order("first_name");
       

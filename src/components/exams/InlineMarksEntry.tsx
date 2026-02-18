@@ -31,30 +31,37 @@ export function InlineMarksEntry({ examSubjectId, subjectName, maxMarks, passMar
   const [marks, setMarks] = useState<MarkEntry[]>([]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Fetch exam subject class_id
-  const { data: examSubject } = useQuery({
-    queryKey: ["exam-subject-detail", examSubjectId],
+  // Fetch exam subject and resolve class_id via exam
+  const { data: classId } = useQuery({
+    queryKey: ["exam-subject-class", examSubjectId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: es, error: esErr } = await supabase
         .from("exam_subjects")
-        .select("*, exams!inner(class_id)")
+        .select("exam_id")
         .eq("id", examSubjectId)
         .single();
-      if (error) throw error;
-      return data;
+      if (esErr) throw esErr;
+
+      const { data: exam, error: examErr } = await supabase
+        .from("exams")
+        .select("class_id")
+        .eq("id", es.exam_id)
+        .single();
+      if (examErr) throw examErr;
+      return exam.class_id as string | null;
     },
   });
 
   const { data: studentsData, isLoading } = useQuery({
-    queryKey: ["students-marks-inline", examSubjectId, examSubject?.exams?.class_id],
+    queryKey: ["students-marks-inline", examSubjectId, classId],
     queryFn: async () => {
-      if (!examSubject?.exams?.class_id) return [];
+      if (!classId) return [];
 
       const [studentsRes, existingMarksRes] = await Promise.all([
         supabase
           .from("students")
           .select("id, first_name, last_name, admission_number")
-          .eq("class_id", examSubject.exams.class_id)
+          .eq("class_id", classId)
           .eq("status", "active")
           .order("first_name"),
         supabase
@@ -77,7 +84,7 @@ export function InlineMarksEntry({ examSubjectId, subjectName, maxMarks, passMar
         };
       });
     },
-    enabled: !!examSubject,
+    enabled: !!classId,
   });
 
   useEffect(() => {

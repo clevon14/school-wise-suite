@@ -19,13 +19,20 @@ export function ClassAnalytics({ examId }: { examId: string }) {
 
       // Get all marks for these exam subjects
       const examSubjectIds = examSubjects.map(es => es.id);
-      const { data: marks, error: marksError } = await supabase
+      const { data: marksRaw, error: marksError } = await supabase
         .from("marks")
-        .select(`
-          *,
-          students!inner(id, first_name, last_name, admission_number)
-        `)
+        .select("*, student_id, marks_obtained, is_absent, exam_subject_id")
         .in("exam_subject_id", examSubjectIds);
+
+      // Fetch students separately
+      const studentIds = [...new Set((marksRaw || []).map(m => m.student_id))];
+      const { data: studentsData } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, admission_number")
+        .in("id", studentIds);
+
+      const studentMap = Object.fromEntries((studentsData || []).map(s => [s.id, s]));
+      const marks = (marksRaw || []).map(m => ({ ...m, students: studentMap[m.student_id] }));
       
       if (marksError) throw marksError;
 

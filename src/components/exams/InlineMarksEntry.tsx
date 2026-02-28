@@ -109,6 +109,7 @@ export function InlineMarksEntry({ examSubjectId, subjectName, maxMarks, passMar
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marks"] });
       queryClient.invalidateQueries({ queryKey: ["students-marks-inline", examSubjectId] });
+      queryClient.invalidateQueries({ queryKey: ["student-exam-marks"] });
       toast.success(`Marks saved for ${subjectName}`);
     },
     onError: (error: any) => {

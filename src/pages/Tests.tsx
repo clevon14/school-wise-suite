@@ -84,6 +84,8 @@ function EnterMarksInline({ testId }: { testId: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-results", testId] });
       queryClient.invalidateQueries({ queryKey: ["tests"] });
+      queryClient.invalidateQueries({ queryKey: ["student-all-tests"] });
+      queryClient.invalidateQueries({ queryKey: ["student-tests-profile"] });
       toast.success("Marks saved successfully");
     },
     onError: () => toast.error("Failed to save marks"),

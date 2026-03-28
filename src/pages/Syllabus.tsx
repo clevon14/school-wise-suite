@@ -164,6 +164,11 @@ export default function Syllabus() {
         <TabsContent value="heatmap">
           <PrincipalHeatmap />
         </TabsContent>
+
+        <TabsContent value="curriculum">
+          <KSEABCurriculum />
+        </TabsContent>
+        </TabsContent>
       </Tabs>
     </div>
   );

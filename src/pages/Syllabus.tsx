@@ -168,7 +168,6 @@ export default function Syllabus() {
         <TabsContent value="curriculum">
           <KSEABCurriculum />
         </TabsContent>
-        </TabsContent>
       </Tabs>
     </div>
   );

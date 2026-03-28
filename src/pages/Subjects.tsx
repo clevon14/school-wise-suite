@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { KSEABCurriculum } from "@/components/subjects/KSEABCurriculum";
 
 interface EditingSubject {
   id: string;

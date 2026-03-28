@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { KSEABCurriculum } from "@/components/subjects/KSEABCurriculum";
 
 interface EditingSubject {
   id: string;
@@ -201,6 +202,8 @@ export default function Subjects() {
           )}
         </CardContent>
       </Card>
+
+      <KSEABCurriculum />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

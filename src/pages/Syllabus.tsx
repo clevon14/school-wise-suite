@@ -12,6 +12,7 @@ import {
 import { AddTopicDialog } from "@/components/syllabus/AddTopicDialog";
 import { TopicProgressCard } from "@/components/syllabus/TopicProgressCard";
 import { PrincipalHeatmap } from "@/components/syllabus/PrincipalHeatmap";
+import { KSEABCurriculum } from "@/components/subjects/KSEABCurriculum";
 
 export default function Syllabus() {
   const [selectedClass, setSelectedClass] = useState("");

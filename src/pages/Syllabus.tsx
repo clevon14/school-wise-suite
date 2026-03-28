@@ -103,6 +103,7 @@ export default function Syllabus() {
         <TabsList>
           <TabsTrigger value="tracker">Topic Tracker</TabsTrigger>
           <TabsTrigger value="heatmap">Completion Heatmap</TabsTrigger>
+          <TabsTrigger value="curriculum">KCF 2007 Curriculum</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tracker" className="space-y-4">

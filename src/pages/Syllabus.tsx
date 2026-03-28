@@ -12,6 +12,7 @@ import {
 import { AddTopicDialog } from "@/components/syllabus/AddTopicDialog";
 import { TopicProgressCard } from "@/components/syllabus/TopicProgressCard";
 import { PrincipalHeatmap } from "@/components/syllabus/PrincipalHeatmap";
+import { KSEABCurriculum } from "@/components/subjects/KSEABCurriculum";
 
 export default function Syllabus() {
   const [selectedClass, setSelectedClass] = useState("");
@@ -102,6 +103,7 @@ export default function Syllabus() {
         <TabsList>
           <TabsTrigger value="tracker">Topic Tracker</TabsTrigger>
           <TabsTrigger value="heatmap">Completion Heatmap</TabsTrigger>
+          <TabsTrigger value="curriculum">KCF 2007 Curriculum</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tracker" className="space-y-4">
@@ -161,6 +163,10 @@ export default function Syllabus() {
 
         <TabsContent value="heatmap">
           <PrincipalHeatmap />
+        </TabsContent>
+
+        <TabsContent value="curriculum">
+          <KSEABCurriculum />
         </TabsContent>
       </Tabs>
     </div>

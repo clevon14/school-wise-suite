@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import TeacherLogin from "./pages/TeacherLogin";
 import SchoolSelector from "./pages/SchoolSelector";
 import SuperAdmin from "./pages/SuperAdmin";
+import SuperAdminLogin from "./pages/SuperAdminLogin";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";

@@ -2,13 +2,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SchoolProvider } from "./contexts/SchoolContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AdminRoute } from "./components/auth/AdminRoute";
+import { SuperAdminRoute } from "./components/auth/SuperAdminRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TeacherLogin from "./pages/TeacherLogin";
+import SchoolSelector from "./pages/SchoolSelector";
+import SuperAdmin from "./pages/SuperAdmin";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
@@ -38,252 +42,64 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
+// Helper to wrap a page with ProtectedRoute + AppLayout
+function ProtectedPage({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <AppLayout>{children}</AppLayout>
+    </ProtectedRoute>
+  );
+}
+
+function AdminPage({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <AdminRoute>
+        <AppLayout>{children}</AppLayout>
+      </AdminRoute>
+    </ProtectedRoute>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/login/teacher" element={<TeacherLogin />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Dashboard />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/students"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Students />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teachers"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Teachers />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/classes"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Classes />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/subjects"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Subjects />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/attendance"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Attendance />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/fees"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Fees />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/exams"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Exams />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tests"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Tests />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tests/:testId"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <TestDetails />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/timetable"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Timetable />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Transport />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/parent"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ParentPortal />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/parent/transport"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ParentTransportView />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quizzes"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Quizzes />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/syllabus"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Syllabus />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Notifications />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/report-cards"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ReportCards />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Reports />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/security"
-            element={
-              <ProtectedRoute>
-                <AdminRoute>
-                  <AppLayout>
-                    <SecurityDashboard />
-                  </AppLayout>
-                </AdminRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/teachers"
-            element={
-              <ProtectedRoute>
-                <AdminRoute>
-                  <AppLayout>
-                    <AdminTeachers />
-                  </AppLayout>
-                </AdminRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/calendar"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AcademicCalendar />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/students/:id"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <StudentProfile />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <SchoolProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login/teacher" element={<TeacherLogin />} />
+            <Route path="/select-school" element={<ProtectedRoute><SchoolSelector /></ProtectedRoute>} />
+            <Route path="/super-admin" element={<ProtectedRoute><SuperAdminRoute><SuperAdmin /></SuperAdminRoute></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
+            <Route path="/students" element={<ProtectedPage><Students /></ProtectedPage>} />
+            <Route path="/students/:id" element={<ProtectedPage><StudentProfile /></ProtectedPage>} />
+            <Route path="/teachers" element={<ProtectedPage><Teachers /></ProtectedPage>} />
+            <Route path="/classes" element={<ProtectedPage><Classes /></ProtectedPage>} />
+            <Route path="/subjects" element={<ProtectedPage><Subjects /></ProtectedPage>} />
+            <Route path="/attendance" element={<ProtectedPage><Attendance /></ProtectedPage>} />
+            <Route path="/fees" element={<ProtectedPage><Fees /></ProtectedPage>} />
+            <Route path="/exams" element={<ProtectedPage><Exams /></ProtectedPage>} />
+            <Route path="/tests" element={<ProtectedPage><Tests /></ProtectedPage>} />
+            <Route path="/tests/:testId" element={<ProtectedPage><TestDetails /></ProtectedPage>} />
+            <Route path="/timetable" element={<ProtectedPage><Timetable /></ProtectedPage>} />
+            <Route path="/transport" element={<ProtectedPage><Transport /></ProtectedPage>} />
+            <Route path="/parent" element={<ProtectedPage><ParentPortal /></ProtectedPage>} />
+            <Route path="/parent/transport" element={<ProtectedPage><ParentTransportView /></ProtectedPage>} />
+            <Route path="/quizzes" element={<ProtectedPage><Quizzes /></ProtectedPage>} />
+            <Route path="/syllabus" element={<ProtectedPage><Syllabus /></ProtectedPage>} />
+            <Route path="/notifications" element={<ProtectedPage><Notifications /></ProtectedPage>} />
+            <Route path="/report-cards" element={<ProtectedPage><ReportCards /></ProtectedPage>} />
+            <Route path="/reports" element={<ProtectedPage><Reports /></ProtectedPage>} />
+            <Route path="/admin/security" element={<AdminPage><SecurityDashboard /></AdminPage>} />
+            <Route path="/admin/teachers" element={<AdminPage><AdminTeachers /></AdminPage>} />
+            <Route path="/calendar" element={<ProtectedPage><AcademicCalendar /></ProtectedPage>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </SchoolProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

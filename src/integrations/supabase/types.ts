@@ -430,6 +430,99 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_guidelines: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      curriculum_language_policy: {
+        Row: {
+          combination: string
+          created_at: string | null
+          first_language: string
+          id: string
+          second_language: string
+          sort_order: number
+          third_language: string
+        }
+        Insert: {
+          combination: string
+          created_at?: string | null
+          first_language: string
+          id?: string
+          second_language: string
+          sort_order?: number
+          third_language: string
+        }
+        Update: {
+          combination?: string
+          created_at?: string | null
+          first_language?: string
+          id?: string
+          second_language?: string
+          sort_order?: number
+          third_language?: string
+        }
+        Relationships: []
+      }
+      curriculum_stages: {
+        Row: {
+          classes: string
+          color: string
+          created_at: string | null
+          icon: string
+          id: string
+          learning_objectives: string[]
+          name: string
+          sort_order: number
+          subjects: Json
+          updated_at: string | null
+        }
+        Insert: {
+          classes: string
+          color?: string
+          created_at?: string | null
+          icon?: string
+          id?: string
+          learning_objectives?: string[]
+          name: string
+          sort_order?: number
+          subjects?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          classes?: string
+          color?: string
+          created_at?: string | null
+          icon?: string
+          id?: string
+          learning_objectives?: string[]
+          name?: string
+          sort_order?: number
+          subjects?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           class_id: string | null

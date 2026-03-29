@@ -77,6 +77,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { activeSchool, isSuperAdmin, schools } = useSchool();
 
 
   useEffect(() => {

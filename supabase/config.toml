@@ -22,7 +22,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.scan-admission-form]
-verify_jwt = false
+verify_jwt = true
 
 [functions.scan-staff-form]
-verify_jwt = false
+verify_jwt = true

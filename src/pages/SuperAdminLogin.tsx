@@ -32,7 +32,7 @@ export default function SuperAdminLogin() {
       if (session) {
         const { data } = await supabase.rpc("is_super_admin", { p_user_id: session.user.id });
         if (data) {
-          navigate("/super-admin", { replace: true });
+          navigate("/dashboard", { replace: true });
         }
       }
     };

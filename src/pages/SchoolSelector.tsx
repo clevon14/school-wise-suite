@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSchool, School } from "@/contexts/SchoolContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Plus } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Building2, Plus, Loader2 } from "lucide-react";
+import { CreateSchoolDialog } from "@/components/super-admin/CreateSchoolDialog";
 
 export default function SchoolSelector() {
   const { schools, setActiveSchool, loading, isSuperAdmin } = useSchool();
   const navigate = useNavigate();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   if (loading) {
     return (
@@ -30,15 +32,18 @@ export default function SchoolSelector() {
           <p className="text-muted-foreground">Choose a school to manage</p>
         </div>
 
+        {isSuperAdmin && (
+          <div className="flex justify-center">
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add School
+            </Button>
+          </div>
+        )}
+
         {schools.length === 0 ? (
           <Card className="text-center p-8">
-            <p className="text-muted-foreground mb-4">No schools assigned to your account yet.</p>
-            {isSuperAdmin && (
-              <Button onClick={() => navigate("/super-admin")}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create a School
-              </Button>
-            )}
+            <p className="text-muted-foreground">No schools assigned to your account yet.</p>
           </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,14 +85,10 @@ export default function SchoolSelector() {
           </div>
         )}
 
-        {isSuperAdmin && (
-          <div className="text-center">
-            <Button variant="outline" onClick={() => navigate("/super-admin")}>
-              <Building2 className="mr-2 h-4 w-4" />
-              Super Admin Portal
-            </Button>
-          </div>
-        )}
+        <CreateSchoolDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+        />
       </div>
     </div>
   );

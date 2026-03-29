@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import TeacherLogin from "./pages/TeacherLogin";
 import SchoolSelector from "./pages/SchoolSelector";
 import SuperAdmin from "./pages/SuperAdmin";
+import SuperAdminLogin from "./pages/SuperAdminLogin";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/login/teacher" element={<TeacherLogin />} />
             <Route path="/select-school" element={<ProtectedRoute><SchoolSelector /></ProtectedRoute>} />
+            <Route path="/super-admin/login" element={<SuperAdminLogin />} />
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdminRoute><SuperAdmin /></SuperAdminRoute></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
             <Route path="/students" element={<ProtectedPage><Students /></ProtectedPage>} />

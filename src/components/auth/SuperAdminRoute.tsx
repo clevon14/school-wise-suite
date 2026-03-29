@@ -18,7 +18,7 @@ export const SuperAdminRoute = ({ children }: SuperAdminRouteProps) => {
   }
 
   if (!isSuperAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/super-admin/login" replace />;
   }
 
   return <>{children}</>;

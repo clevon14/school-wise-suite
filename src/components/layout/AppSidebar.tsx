@@ -125,7 +125,7 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="flex h-14 md:h-16 items-center border-b px-4 md:px-6">
           <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-          {open && <span className="ml-2 text-base md:text-lg font-semibold">Holy Cross School</span>}
+          {open && <span className="ml-2 text-base md:text-lg font-semibold truncate">{activeSchool?.name || "School"}</span>}
         </div>
         
         <SidebarGroup>

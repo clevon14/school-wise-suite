@@ -16,7 +16,10 @@ import {
   BarChart3,
   Shield,
   UserPlus,
+  Building2,
+  ArrowLeftRight,
 } from "lucide-react";
+import { useSchool } from "@/contexts/SchoolContext";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {

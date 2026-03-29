@@ -32,7 +32,7 @@ export default function SuperAdminLogin() {
       if (session) {
         const { data } = await supabase.rpc("is_super_admin", { p_user_id: session.user.id });
         if (data) {
-          navigate("/dashboard", { replace: true });
+          navigate("/select-school", { replace: true });
         }
       }
     };
@@ -63,7 +63,7 @@ export default function SuperAdminLogin() {
       }
 
       toast.success("Welcome, Super Admin!");
-      navigate("/dashboard", { replace: true });
+      navigate("/select-school", { replace: true });
     } catch (err: any) {
       toast.error(err.message || "Login failed");
     } finally {

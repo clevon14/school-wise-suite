@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useSchool, School } from "@/contexts/SchoolContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Plus, Loader2 } from "lucide-react";
+import { Building2, Plus, Loader2, Pencil } from "lucide-react";
 import { CreateSchoolDialog } from "@/components/super-admin/CreateSchoolDialog";
+import { EditSchoolDialog } from "@/components/super-admin/EditSchoolDialog";
 
 export default function SchoolSelector() {
   const { schools, setActiveSchool, loading, isSuperAdmin } = useSchool();
   const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingSchool, setEditingSchool] = useState<School | null>(null);
 
   if (loading) {
     return (
@@ -50,9 +52,22 @@ export default function SchoolSelector() {
             {schools.map((school) => (
               <Card
                 key={school.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
+                className="hover:shadow-lg transition-shadow cursor-pointer relative"
                 onClick={() => handleSelectSchool(school)}
               >
+                {isSuperAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingSchool(school);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
                 <CardHeader className="text-center pb-3">
                   <div className="flex justify-center mb-3">
                     {school.logo_url ? (
@@ -89,6 +104,14 @@ export default function SchoolSelector() {
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
         />
+
+        {editingSchool && (
+          <EditSchoolDialog
+            open={!!editingSchool}
+            onOpenChange={(open) => !open && setEditingSchool(null)}
+            school={editingSchool}
+          />
+        )}
       </div>
     </div>
   );

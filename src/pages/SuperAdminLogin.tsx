@@ -63,7 +63,7 @@ export default function SuperAdminLogin() {
       }
 
       toast.success("Welcome, Super Admin!");
-      navigate("/super-admin", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       toast.error(err.message || "Login failed");
     } finally {

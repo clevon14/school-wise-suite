@@ -166,7 +166,7 @@ export default function Syllabus() {
         </TabsContent>
 
         <TabsContent value="curriculum">
-          <KSEABCurriculum />
+          <DynamicCurriculum />
         </TabsContent>
       </Tabs>
     </div>

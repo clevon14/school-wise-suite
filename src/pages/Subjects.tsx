@@ -203,7 +203,7 @@ export default function Subjects() {
         </CardContent>
       </Card>
 
-      <KSEABCurriculum />
+      <DynamicCurriculum />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

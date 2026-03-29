@@ -126,7 +126,7 @@ function StagesTab({ isAdmin }: { isAdmin: boolean }) {
       <div className="grid gap-4 md:grid-cols-2">
         {stages?.map((stage) => {
           const Icon = iconMap[stage.icon] || BookOpen;
-          const subjects = (stage.subjects as SubjectGroup[]) || [];
+          const subjects = (stage.subjects as unknown as SubjectGroup[]) || [];
           const objectives = (stage.learning_objectives as string[]) || [];
           const isEditing = editingId === stage.id;
 

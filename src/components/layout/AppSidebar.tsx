@@ -16,7 +16,10 @@ import {
   BarChart3,
   Shield,
   UserPlus,
+  Building2,
+  ArrowLeftRight,
 } from "lucide-react";
+import { useSchool } from "@/contexts/SchoolContext";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -74,6 +77,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { activeSchool, isSuperAdmin, schools } = useSchool();
 
 
   useEffect(() => {
@@ -122,7 +126,7 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="flex h-14 md:h-16 items-center border-b px-4 md:px-6">
           <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-          {open && <span className="ml-2 text-base md:text-lg font-semibold">Holy Cross School</span>}
+          {open && <span className="ml-2 text-base md:text-lg font-semibold truncate">{activeSchool?.name || "School"}</span>}
         </div>
         
         <SidebarGroup>
@@ -154,6 +158,28 @@ export function AppSidebar() {
         <SidebarGroup className="mt-auto border-t">
           <SidebarGroupContent>
             <SidebarMenu>
+              {isSuperAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigate("/super-admin")}
+                    className="min-h-[44px] md:min-h-[36px]"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    <span className="text-sm md:text-base">Super Admin</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {schools.length > 1 && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigate("/select-school")}
+                    className="min-h-[44px] md:min-h-[36px]"
+                  >
+                    <ArrowLeftRight className="h-4 w-4" />
+                    <span className="text-sm md:text-base">Switch School</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={handleLogout}

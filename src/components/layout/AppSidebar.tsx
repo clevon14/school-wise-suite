@@ -158,6 +158,28 @@ export function AppSidebar() {
         <SidebarGroup className="mt-auto border-t">
           <SidebarGroupContent>
             <SidebarMenu>
+              {isSuperAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigate("/super-admin")}
+                    className="min-h-[44px] md:min-h-[36px]"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    <span className="text-sm md:text-base">Super Admin</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {schools.length > 1 && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigate("/select-school")}
+                    className="min-h-[44px] md:min-h-[36px]"
+                  >
+                    <ArrowLeftRight className="h-4 w-4" />
+                    <span className="text-sm md:text-base">Switch School</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={handleLogout}

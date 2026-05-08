@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Upload, FileText, Pencil, UserX, UserCheck } from "lucide-react";
+import { Plus, User, Upload, FileText, Pencil, UserX, UserCheck, History } from "lucide-react";
 import { CSVExportButton } from "@/components/CSVExportButton";
 import { AddTeacherDialog } from "@/components/forms/AddTeacherDialog";
 import { BulkTeacherImport } from "@/components/forms/BulkTeacherImport";
@@ -11,6 +11,7 @@ import { PrintableStaffForm } from "@/components/forms/PrintableStaffForm";
 import { EditTeacherDialog } from "@/components/teachers/EditTeacherDialog";
 import { ExitTeacherDialog } from "@/components/teachers/ExitTeacherDialog";
 import { ReinstateTeacherDialog } from "@/components/teachers/ReinstateTeacherDialog";
+import { TeacherAuditTimelineDialog } from "@/components/teachers/TeacherAuditTimelineDialog";
 import { LeaveManagement } from "@/components/teachers/LeaveManagement";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {

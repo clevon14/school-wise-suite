@@ -82,6 +82,29 @@ export function ExitTeacherDialog({ teacher, open, onOpenChange }: Props) {
           .eq("id", teacher.user_id);
         if (profErr) throw profErr;
       }
+
+      // 4. Write audit log
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("audit_logs").insert({
+          user_id: user.id,
+          action: "teacher_exit",
+          resource_type: "employee",
+          resource_id: teacher.id,
+          details: {
+            exit_type: exitType,
+            exit_date: exitDate,
+            reason: reason || null,
+            unassigned_classes: unassign,
+            login_disabled: disableLogin && !!teacher.user_id,
+            changed_fields: {
+              status: { from: "active", to: exitType },
+              exit_date: { from: null, to: exitDate },
+              exit_type: { from: null, to: exitType },
+            },
+          },
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["teachers"] });

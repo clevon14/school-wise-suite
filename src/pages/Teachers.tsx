@@ -171,6 +171,14 @@ export default function Teachers() {
                                 <UserX className="h-4 w-4 text-destructive" />
                               </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setHistoryTeacher(teacher)}
+                              title="Audit timeline"
+                            >
+                              <History className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>

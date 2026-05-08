@@ -1,37 +1,56 @@
 ## Goal
-Shift every active student up by one class in preparation for June 2026 admissions, and free up Class 1 for incoming students.
+Give admins a clean way to handle teachers who **resign, retire, or are dismissed** — without deleting their records (needed for audit, past marks, attendance history, salary history).
 
-## Promotions
+## Current state
+- `employees` table already has a `status` column (default `'active'`).
+- Today the Teachers page only shows the status badge — there's no UI action to change it, no exit date, no reason, and no impact on class assignments or login access.
 
-| From | To | Students |
-|---|---|---|
-| Class 9 A | Class 10 A | 21 |
-| Class 8 A | Class 9 A | 41 |
-| Class 7 A | Class 8 A | 57 |
-| Class 6 A | Class 7 A | 48 |
-| Class 5 A | Class 6 A | 44 |
-| Class 4 A | Class 5 A | 37 |
-| Class 3 A | Class 4 A | 44 |
-| Class 2 A | Class 3 A | 29 |
-| Class 1 A | Class 2 A | 25 |
-| Class 1 A | — | **left empty (0)** for new admissions |
+## Proposed flow
 
-Total: **346 active students** moved.
+### 1. New "Exit Teacher" action on the Teachers page
+On each row in `src/pages/Teachers.tsx`, add a **UserX** menu action → opens an **Exit Teacher dialog** with:
+- Exit type: *Resigned / Dismissed / Retired / Terminated / On long leave*
+- Last working date (date picker, defaults to today)
+- Reason / notes (textarea)
+- Checkbox: "Disable login account" (default ON)
+- Checkbox: "Unassign from classes & subjects" (default ON)
 
-## Steps
+### 2. What happens on submit
+- `employees.status` → set to the chosen exit type (e.g. `resigned`, `dismissed`, `retired`)
+- Store `exit_date` and `exit_reason` (new columns)
+- If "Unassign" checked → null out `class_subjects.teacher_id` for that employee (keeps the class–subject row, just removes the teacher)
+- If "Disable login" checked → set `profiles.is_active = false` for the linked user (login blocked, data preserved)
+- Write a row to `audit_logs` (`action: 'teacher_exit'`)
 
-1. **Run the promotions in reverse order** (9→10 first, down to 1→2) so no class collides during the update.
-2. For each promoted student, log a row in `promotion_history` with `action='promote'`, `from_class_id`, `to_class_id`, `academic_year='2026-2027'`, and `promoted_by` = current admin.
-3. **Normalize all classes** to `academic_year = '2026-2027'` (currently mixed between `2025-2026` and `2026`).
-4. Class 1 A is left intact — same row, just no students assigned, ready to receive June admissions.
+### 3. Filter & visibility
+- Teachers page gets a **status filter**: Active (default) / Exited / All
+- Exited teachers shown with a muted row + status badge
+- Exit date and reason visible in the row / Edit dialog
+- An admin can **reinstate** an exited teacher (status → active, optionally re-enable login)
 
-## Safety
-- Only `status='active'` students are touched. Transferred / inactive students stay where they are.
-- Class 10 currently has 0 students, so no one is dropped/graduated by this run.
-- Everything runs in a single transaction — if any step fails, nothing is committed.
-- Full audit trail via `promotion_history`.
+### 4. What is NOT touched
+- Past attendance, marks, leave history, salary records — all preserved
+- The teacher's `employees` row is never deleted
+- Class–subject rows remain (just teacher unassigned), so admin can pick a replacement
 
-## Out of scope
-- No changes to fees, attendance, or marks (those stay tied to the student, not the class).
-- No new sections created.
-- No graduation/archival of Class 10 (none exist yet).
+## Technical changes
+
+**DB migration**
+```sql
+ALTER TABLE employees
+  ADD COLUMN exit_date date,
+  ADD COLUMN exit_reason text,
+  ADD COLUMN exit_type text;  -- resigned | dismissed | retired | terminated
+```
+Status values used: `active`, `resigned`, `dismissed`, `retired`, `terminated`, `on_leave`.
+
+**Frontend**
+- New: `src/components/teachers/ExitTeacherDialog.tsx`
+- New: `src/components/teachers/ReinstateTeacherDialog.tsx`
+- Edit: `src/pages/Teachers.tsx` — add status filter, exit/reinstate actions, exit columns
+- Edit: `src/components/teachers/EditTeacherDialog.tsx` — show exit info read-only when status ≠ active
+
+**Out of scope** (can do later if you want):
+- Final settlement / pending salary calculation
+- Auto-reassign their classes to another teacher in one click
+- Generating a relieving / experience letter PDF

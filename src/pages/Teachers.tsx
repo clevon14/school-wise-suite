@@ -222,6 +222,14 @@ export default function Teachers() {
         />
       )}
 
+      {historyTeacher && (
+        <TeacherAuditTimelineDialog
+          teacher={historyTeacher}
+          open={!!historyTeacher}
+          onOpenChange={(open) => { if (!open) setHistoryTeacher(null); }}
+        />
+      )}
+
       <LeaveManagement />
     </div>
   );

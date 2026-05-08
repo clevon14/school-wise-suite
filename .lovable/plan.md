@@ -1,38 +1,37 @@
+## Goal
+Shift every active student up by one class in preparation for June 2026 admissions, and free up Class 1 for incoming students.
 
+## Promotions
 
-## Current Status
+| From | To | Students |
+|---|---|---|
+| Class 9 A | Class 10 A | 21 |
+| Class 8 A | Class 9 A | 41 |
+| Class 7 A | Class 8 A | 57 |
+| Class 6 A | Class 7 A | 48 |
+| Class 5 A | Class 6 A | 44 |
+| Class 4 A | Class 5 A | 37 |
+| Class 3 A | Class 4 A | 44 |
+| Class 2 A | Class 3 A | 29 |
+| Class 1 A | Class 2 A | 25 |
+| Class 1 A | — | **left empty (0)** for new admissions |
 
-The Super Admin portal code is fully implemented and the app is running (you're currently on /classes with no errors). The browser automation tool is experiencing transient 502 connectivity issues, preventing me from testing directly.
+Total: **346 active students** moved.
 
-### What's in place:
-- `/super-admin` route with `SuperAdminRoute` guard
-- `SchoolContext` checks for `super_admin` role in `user_roles`
-- `SuperAdmin.tsx` page with school CRUD (create, delete, view stats)
-- `CreateSchoolDialog` with name, tagline, address, colors
-- `SchoolCard` with Enter/Delete actions
+## Steps
 
-### To test manually:
-1. Navigate to `/super-admin` in your preview
-2. If you see the Super Admin portal -- your role assignment worked
-3. If you get redirected to `/dashboard` -- the `super_admin` role wasn't found in `user_roles`
+1. **Run the promotions in reverse order** (9→10 first, down to 1→2) so no class collides during the update.
+2. For each promoted student, log a row in `promotion_history` with `action='promote'`, `from_class_id`, `to_class_id`, `academic_year='2026-2027'`, and `promoted_by` = current admin.
+3. **Normalize all classes** to `academic_year = '2026-2027'` (currently mixed between `2025-2026` and `2026`).
+4. Class 1 A is left intact — same row, just no students assigned, ready to receive June admissions.
 
-### Potential issue: `super_admin` not in the enum
-The `app_role` enum in the database is currently: `admin | teacher | parent | student`. The migration should have added `super_admin` to it. If the role insert failed silently because `super_admin` isn't a valid enum value, the guard will redirect you.
+## Safety
+- Only `status='active'` students are touched. Transferred / inactive students stay where they are.
+- Class 10 currently has 0 students, so no one is dropped/graduated by this run.
+- Everything runs in a single transaction — if any step fails, nothing is committed.
+- Full audit trail via `promotion_history`.
 
-**Quick fix** -- run this in the SQL Editor to verify:
-```sql
--- Check if super_admin exists in the enum
-SELECT unnest(enum_range(NULL::app_role));
-
--- If super_admin is NOT listed, add it:
-ALTER TYPE app_role ADD VALUE IF NOT EXISTS 'super_admin';
-
--- Then re-insert your role:
-INSERT INTO user_roles (user_id, role)
-VALUES ('YOUR_USER_ID', 'super_admin')
-ON CONFLICT (user_id, role) DO NOTHING;
-```
-
-### Next step
-Please navigate to `/super-admin` in your preview and let me know what you see. If it works, try clicking "Add School" to test creation.
-
+## Out of scope
+- No changes to fees, attendance, or marks (those stay tied to the student, not the class).
+- No new sections created.
+- No graduation/archival of Class 10 (none exist yet).

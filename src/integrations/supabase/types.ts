@@ -749,6 +749,9 @@ export type Database = {
           emergency_contact_number: string | null
           employee_number: string
           epf_number: string | null
+          exit_date: string | null
+          exit_reason: string | null
+          exit_type: string | null
           father_name: string | null
           first_name: string
           gender: string | null
@@ -797,6 +800,9 @@ export type Database = {
           emergency_contact_number?: string | null
           employee_number: string
           epf_number?: string | null
+          exit_date?: string | null
+          exit_reason?: string | null
+          exit_type?: string | null
           father_name?: string | null
           first_name: string
           gender?: string | null
@@ -845,6 +851,9 @@ export type Database = {
           emergency_contact_number?: string | null
           employee_number?: string
           epf_number?: string | null
+          exit_date?: string | null
+          exit_reason?: string | null
+          exit_type?: string | null
           father_name?: string | null
           first_name?: string
           gender?: string | null

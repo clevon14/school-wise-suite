@@ -32,6 +32,7 @@ export default function Teachers() {
   const [editingTeacher, setEditingTeacher] = useState<any>(null);
   const [exitingTeacher, setExitingTeacher] = useState<any>(null);
   const [reinstatingTeacher, setReinstatingTeacher] = useState<any>(null);
+  const [historyTeacher, setHistoryTeacher] = useState<any>(null);
   const [filter, setFilter] = useState<"active" | "exited" | "all">("active");
 
   const { data: teachers, isLoading } = useQuery({

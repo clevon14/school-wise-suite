@@ -37,6 +37,22 @@ export function ReinstateTeacherDialog({ teacher, open, onOpenChange }: Props) {
       if (enableLogin && teacher.user_id) {
         await supabase.from("profiles").update({ is_active: true }).eq("id", teacher.user_id);
       }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("audit_logs").insert({
+          user_id: user.id,
+          action: "teacher_reinstate",
+          resource_type: "employee",
+          resource_id: teacher.id,
+          details: {
+            login_enabled: enableLogin && !!teacher.user_id,
+            changed_fields: {
+              status: { from: "exited", to: "active" },
+            },
+          },
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["teachers"] });

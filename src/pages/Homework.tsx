@@ -11,6 +11,19 @@ import { format, isPast } from "date-fns";
 import { useCurrentRole } from "@/lib/use-current-role";
 import { CreateHomeworkDialog } from "@/components/homework/CreateHomeworkDialog";
 
+async function enrichHomework(list: any[]) {
+  if (list.length === 0) return list;
+  const classIds = Array.from(new Set(list.map((h) => h.class_id).filter(Boolean)));
+  const subjectIds = Array.from(new Set(list.map((h) => h.subject_id).filter(Boolean)));
+  const [{ data: classes }, { data: subjects }] = await Promise.all([
+    supabase.from("classes").select("id,name,section").in("id", classIds),
+    supabase.from("subjects").select("id,name").in("id", subjectIds),
+  ]);
+  const cMap = new Map((classes ?? []).map((c: any) => [c.id, c]));
+  const sMap = new Map((subjects ?? []).map((s: any) => [s.id, s]));
+  return list.map((h) => ({ ...h, classes: cMap.get(h.class_id), subjects: sMap.get(h.subject_id) }));
+}
+
 function HomeworkRow({ hw, statusLabel }: { hw: any; statusLabel?: string }) {
   const due = new Date(hw.due_date);
   const overdue = isPast(due);

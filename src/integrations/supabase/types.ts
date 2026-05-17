@@ -1182,6 +1182,122 @@ export type Database = {
         }
         Relationships: []
       }
+      homework: {
+        Row: {
+          allow_late: boolean
+          assigned_date: string
+          attachment_urls: string[] | null
+          class_id: string
+          created_at: string
+          due_date: string
+          id: string
+          instructions: string | null
+          max_marks: number | null
+          school_id: string | null
+          status: string
+          subject_id: string
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          allow_late?: boolean
+          assigned_date?: string
+          attachment_urls?: string[] | null
+          class_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          instructions?: string | null
+          max_marks?: number | null
+          school_id?: string | null
+          status?: string
+          subject_id: string
+          teacher_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          allow_late?: boolean
+          assigned_date?: string
+          attachment_urls?: string[] | null
+          class_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          instructions?: string | null
+          max_marks?: number | null
+          school_id?: string | null
+          status?: string
+          subject_id?: string
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homework_submissions: {
+        Row: {
+          attachment_urls: string[] | null
+          created_at: string
+          feedback: string | null
+          graded_at: string | null
+          graded_by: string | null
+          homework_id: string
+          id: string
+          is_late: boolean
+          marks_awarded: number | null
+          school_id: string | null
+          status: string
+          student_id: string
+          submission_text: string | null
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          attachment_urls?: string[] | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          homework_id: string
+          id?: string
+          is_late?: boolean
+          marks_awarded?: number | null
+          school_id?: string | null
+          status?: string
+          student_id: string
+          submission_text?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attachment_urls?: string[] | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          homework_id?: string
+          id?: string
+          is_late?: boolean
+          marks_awarded?: number | null
+          school_id?: string | null
+          status?: string
+          student_id?: string
+          submission_text?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_submissions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "homework"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_requests: {
         Row: {
           approved_at: string | null

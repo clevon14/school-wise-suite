@@ -59,14 +59,11 @@ export default function HomeworkPage() {
   const { data: staffList } = useQuery({
     queryKey: ["homework", "staff", me?.role, me?.employeeId, me?.schoolId],
     queryFn: async () => {
-      let q = supabase
-        .from("homework")
-        .select("*, classes:class_id(name,section), subjects:subject_id(name)")
-        .order("due_date", { ascending: false });
+      let q = supabase.from("homework").select("*").order("due_date", { ascending: false });
       if (me?.role === "teacher" && me.employeeId) q = q.eq("teacher_id", me.employeeId);
       const { data, error } = await q;
       if (error) throw error;
-      return data || [];
+      return await enrichHomework(data || []);
     },
     enabled: !!me && isStaff,
   });
@@ -88,13 +85,11 @@ export default function HomeworkPage() {
     queryFn: async () => {
       if (classIds.length === 0) return [];
       const { data, error } = await supabase
-        .from("homework")
-        .select("*, classes:class_id(name,section), subjects:subject_id(name)")
-        .in("class_id", classIds)
-        .eq("status", "published")
+        .from("homework").select("*")
+        .in("class_id", classIds).eq("status", "published")
         .order("due_date", { ascending: false });
       if (error) throw error;
-      return data || [];
+      return await enrichHomework(data || []);
     },
     enabled: !isStaff && classIds.length > 0,
   });

@@ -18,13 +18,15 @@ export default function HomeworkDetail() {
   const { data: hw, isLoading } = useQuery({
     queryKey: ["homework-detail", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("homework")
-        .select("*, classes:class_id(name,section), subjects:subject_id(name), teacher:teacher_id(first_name,last_name)")
-        .eq("id", id)
-        .maybeSingle();
+      const { data, error } = await supabase.from("homework").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
-      return data;
+      if (!data) return null;
+      const [cls, subj, emp] = await Promise.all([
+        supabase.from("classes").select("name,section").eq("id", data.class_id).maybeSingle(),
+        supabase.from("subjects" as any).select("name").eq("id", data.subject_id).maybeSingle(),
+        supabase.from("employees").select("first_name,last_name").eq("id", data.teacher_id).maybeSingle(),
+      ]);
+      return { ...data, classes: cls.data, subjects: subj.data, teacher: emp.data };
     },
     enabled: !!id,
   });

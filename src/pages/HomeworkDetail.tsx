@@ -23,7 +23,7 @@ export default function HomeworkDetail() {
       if (!data) return null;
       const [cls, subj, emp] = await Promise.all([
         supabase.from("classes").select("name,section").eq("id", data.class_id).maybeSingle(),
-        supabase.from("subjects" as any).select("name").eq("id", data.subject_id).maybeSingle(),
+        supabase.from("subjects").select("name").eq("id", data.subject_id).maybeSingle(),
         supabase.from("employees").select("first_name,last_name").eq("id", data.teacher_id).maybeSingle(),
       ]);
       return { ...data, classes: cls.data, subjects: subj.data, teacher: emp.data };

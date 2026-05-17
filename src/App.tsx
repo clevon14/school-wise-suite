@@ -37,6 +37,8 @@ import SecurityDashboard from "./pages/SecurityDashboard";
 import AdminTeachers from "./pages/AdminTeachers";
 import AcademicCalendar from "./pages/AcademicCalendar";
 import StudentProfile from "./pages/StudentProfile";
+import Homework from "./pages/Homework";
+import HomeworkDetail from "./pages/HomeworkDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -98,6 +100,8 @@ const App = () => (
             <Route path="/admin/security" element={<AdminPage><SecurityDashboard /></AdminPage>} />
             <Route path="/admin/teachers" element={<AdminPage><AdminTeachers /></AdminPage>} />
             <Route path="/calendar" element={<ProtectedPage><AcademicCalendar /></ProtectedPage>} />
+            <Route path="/homework" element={<ProtectedPage><Homework /></ProtectedPage>} />
+            <Route path="/homework/:id" element={<ProtectedPage><HomeworkDetail /></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </SchoolProvider>

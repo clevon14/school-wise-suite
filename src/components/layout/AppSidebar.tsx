@@ -18,6 +18,7 @@ import {
   UserPlus,
   Building2,
   ArrowLeftRight,
+  ClipboardList,
 } from "lucide-react";
 import { useSchool } from "@/contexts/SchoolContext";
 import { NavLink } from "@/components/NavLink";
@@ -55,6 +56,7 @@ const adminMenuItems = [
   { title: "Transport", url: "/transport", icon: Bus },
   { title: "Quizzes", url: "/quizzes", icon: ListChecks },
   { title: "Syllabus", url: "/syllabus", icon: BookOpen },
+  { title: "Homework", url: "/homework", icon: ClipboardList },
   { title: "Academic Calendar", url: "/calendar", icon: Calendar },
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Parent Portal", url: "/parent", icon: Users },
@@ -69,6 +71,7 @@ const teacherMenuItems = [
   { title: "Report Cards", url: "/report-cards", icon: Award },
   { title: "Timetable", url: "/timetable", icon: Calendar },
   { title: "Syllabus", url: "/syllabus", icon: BookOpen },
+  { title: "Homework", url: "/homework", icon: ClipboardList },
 ];
 
 export function AppSidebar() {
